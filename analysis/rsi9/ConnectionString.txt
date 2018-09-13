@@ -1,0 +1,3 @@
+Provider=MSDASQL.1;Persist Security Info=False;Data Source=Text
+
+DSN=Text;DBQ=C:\USERS\DAVID\DESKTOP;DefaultDir=C:\Python27\Examples\EventProfiler\seasonal analysis;DriverId=27;FIL=text;MaxBufferSize=2048;PageTimeout=5;

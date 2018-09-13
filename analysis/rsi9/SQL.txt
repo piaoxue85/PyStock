@@ -1,0 +1,14 @@
+#OVERSOLD AND OVERBOUGHT BY MONTH
+select MONTH, INDICATOR, COUNT(YEAR) from ( select distinct  [YEAR], [MONTH], INDICATOR from (select year(tradeDate) as [YEAR], month(tradeDate) as [MONTH], TRADEDATE, [0002] as RSI, iif([0002] < 30, 'Oversold', iif([0002] > 70, 'Overbought', '')) as [INDICATOR] from [rsi9.csv]) where Indicator <> '' ) group by MONTH, INDICATOR
+
+#HIGHEST PRICE BY YEAR
+select year(Date) as [YEAR], Max(High) from [0002.csv] group by year(Date)
+
+#LOWEST AND HIGHEST
+select iif(MonthLow = YearLow, 'LOWEST', iif(MonthHigh = YearHigh, 'HIGHEST', '')), * from (select a.*, b.YearHigh, b.YearLow from (select year(Date) as [YEAR], Month(Date) as [Month], Min(Low) as MonthLow, Max(High) as MonthHigh from [0002.csv]  group by year(Date), Month(Date)) a left outer join (select year(Date) as [YEAR], Max(High) as YearHigh, Min(Low) as YearLow from [0002.csv] group by year(Date)) b on a.Year = b.Year) where (MonthLow = YearLow or MonthHigh = YearHIgh) order by [Month], [Year]
+
+select a.*, round(OCCURENCE / YEARS * 100,2) as PERCENTAGE from (select MONTH, INDICATOR, COUNT(YEAR) as OCCURENCE from ( select distinct  [YEAR], [MONTH], INDICATOR from (select year(tradeDate) as [YEAR], month(tradeDate) as [MONTH], TRADEDATE, [0002] as RSI, iif([0002] < 30, 'Oversold', iif([0002] > 70, 'Overbought', '')) as [INDICATOR] from [rsi9.csv]) where Indicator <> '' ) group by MONTH, INDICATOR) a, (select max(year(tradeDate)) - min(year(tradeDate)) + 1 as YEARS from [rsi9.csv] where [0002] > 0) b 
+
+
+
+
