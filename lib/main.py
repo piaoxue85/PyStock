@@ -43,6 +43,7 @@ import rule16 as r16
 
 
 import analyzer as an
+import globaldf
 
 global dt_end
 global dt_start
@@ -63,17 +64,20 @@ def prepareRefDf(market):
 
         directory = "data\\google\\"
         filepath = directory + "gdata.csv"
-        df_googleData = pd.read_csv(filepath)
+        #df_googleData = pd.read_csv(filepath)
+        df_googleData = globaldf.read(filepath)
         ret.append(df_googleData)
 
         directory = "data\\google\\"
         filepath = directory + "transactions.csv"
-        df_trans = pd.read_csv(filepath)
+        #df_trans = pd.read_csv(filepath)
+        df_trans = globaldf.read(filepath)
         ret.append(df_trans)
 
         directory = "analysis\\rsi9\\output\\"
         filepath = directory + "seasonalrsi.csv"
-        df_rsi_an = pd.read_csv(filepath)
+        #df_rsi_an = pd.read_csv(filepath)
+        df_rsi_an = globaldf.read(filepath)
         ret.append(df_rsi_an)
 
         c = "results\\prediction\\*" + market + "*-1.csv"

@@ -27,6 +27,8 @@ import daychart
 
 import formatter
 
+import globaldf
+
 global ls_symbols
 global argv
 global ofilename
@@ -64,14 +66,16 @@ def run(market=''):
         directory = "data\\google\\"
         filepath = directory + "gdata.csv"
         global df_googleData
-        df_googleData = pd.read_csv(filepath)
+        #df_googleData = pd.read_csv(filepath)
+        df_googleData = globaldf.read(filepath)
 
         symlist = ''
 
         #onhand
         directory = "data\\google\\"
         filepath = directory + "transactions.csv"
-        df_trans = pd.read_csv(filepath)
+        #df_trans = pd.read_csv(filepath)
+        df_trans = globaldf.read(filepath)
         ls_symbols = fn.onhandsymbols(df_trans)
         ofilename = 'OnHand'
         main()
@@ -188,7 +192,6 @@ def createSignalFile(df1, signal):
         ls_symbols = []
         for rule in rules:
                 ls_symbols = ls_symbols + readSignal(df1,rule,signal)
-
 
         df2 = df1[df1['SYMBOL'].isin(ls_symbols)]        
         

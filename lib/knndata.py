@@ -23,6 +23,7 @@ import numpy as np
 from numpy import array
 
 import globalfd
+import globaldf
 
 global writeFile
 
@@ -240,7 +241,8 @@ def getRawData(s, readquote = True):
     fnn = fn.filenameFormatter(s)
     filepath = hdir + fnn + ".csv"
 
-    df_data1 = pandas.read_csv(filepath)
+    #df_data1 = pandas.read_csv(filepath)
+    df_data1 = globaldf.read(filepath)
     df_data1 = changedftouppercase(df_data1)
     df_data1['DATE'] =  pandas.to_datetime(df_data1['DATE']).apply(lambda x: x.date())    
 
@@ -346,7 +348,8 @@ def readCache(s, beginDate, endDate):
     ls_data = []
 
     try:            
-        df_data = pandas.read_csv(filepath)
+        #df_data = pandas.read_csv(filepath)
+        df_data = globaldf.read(filepath)
         df_data = changedftouppercase(df_data)
         df_data['DATE'] =  pandas.to_datetime(df_data['DATE']).apply(lambda x: x.date())
         df_data = df_data[(df_data['DATE'] >= beginDate) & (df_data['DATE'] <= endDate)]
@@ -733,7 +736,8 @@ def validateData(ls_symbols):
             filepath = hdir + fnn + ".csv"
             filepath2 = qdir + fnn + ".csv"
             
-            df_data = pandas.read_csv(filepath)
+            #df_data = pandas.read_csv(filepath)
+            df_data = globaldf.read(filepath)
             df_data2 = pandas.read_csv(filepath2,names = column_names)
             df_data2 = changedftouppercase(df_data2)
 

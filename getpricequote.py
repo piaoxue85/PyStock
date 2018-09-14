@@ -8,6 +8,7 @@ import os.path
 import pandas as pd
 import numpy
 import sys
+from lib import globaldf
 
 
 ldt_timestamps = []
@@ -183,7 +184,8 @@ if __name__ == '__main__':
     argv = sys.argv
     #Read config file for urls, read one time only
     #11 Aug 2018    
-    df_confile = pd.read_csv('getpricequote.cfg')
+    #df_confile = pd.read_csv('getpricequote.cfg')
+    df_confile = globaldf.read('getpricequote.cfg')
     
     para = ""
     if len(argv)>1:

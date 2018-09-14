@@ -8,6 +8,8 @@ import copy
 
 import csv
 
+import globaldf
+
 from collections import OrderedDict
 
 print "Pandas Version", pd.__version__
@@ -226,10 +228,12 @@ def trend(df_val, idx, col):
 #19 Feb 2018
 def read_as_df(files):
 
-        df1 = pd.read_csv(files[0])
+        #df1 = pd.read_csv(files[0])
+        df1 = globaldf.read(files[0])
         
         for i in range(1,len(files)):
-                df2 = pd.read_csv(files[i])
+                #df2 = pd.read_csv(files[i])
+                df2 = globaldf.read(files[i])
                 df1 = pd.concat([df1,df2])
 
         return df1
@@ -238,7 +242,8 @@ def read_as_df(files):
 #11 Aug 2018
 def readconfigfile(filepath):
 
-    df_data = pd.read_csv(filepath)
+    #df_data = pd.read_csv(filepath)
+    df_data = globaldf.read(filepath)
 
     return df_data    
 

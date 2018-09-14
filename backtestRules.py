@@ -14,6 +14,7 @@ from lib import knndata
 
 from datetime import datetime, timedelta
 from lib import talibw
+from lib import globaldf
 
 import pandas as pd
 
@@ -31,8 +32,8 @@ global bheader
 global sheader
 
 #TAKE PROFIT, STOP LOSS
-global autoplfile
-global autoplheader
+global fixedplfile
+global fixedplheader
 
 global sDate
 global eDate
@@ -100,7 +101,8 @@ def getSymbols():
         
         filepath = gdir + "gdata.csv"
         global df_googleData
-        df_googleData = pd.read_csv(filepath)
+        #df_googleData = pd.read_csv(filepath)
+        df_googleData = globaldf.read(filepath)
             
         ls_symbols1 = fn.readsymbols(df_googleData,'HSI')
         ls_symbols2 = fn.readsymbols(df_googleData,'ASX')
@@ -294,7 +296,7 @@ def pairingorder(symbol, df_tdata, keepoldresults = False):
                         rules.append([str(b),str(s), 0])
                         for mloss in range(2, maxlosspct, 1):
                                 rules.append([str(b),str(s), float(mloss) / 100])                        
-                rules.append([str(b),'AUTOPL',stoploss])
+                rules.append([str(b),'FIXEDPL',stoploss])
                                           
         try:
                 df_backtestResults = pd.read_csv(bsfile, dtype={'P.TYPE': 'S30', 'S.TYPE': 'S30'})
@@ -634,7 +636,7 @@ if __name__ == '__main__':
         main()
         print "[" + para + "]"
     else:
-        markets = ['HSI','ASX']
+        markets = ['NYSE']
         for market in markets:
                 main(market)
         

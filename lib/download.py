@@ -2,6 +2,7 @@ import urllib
 import urllib2
 import csv
 import pandas
+import globaldf
 
 
 def downloadfromgoogle(url):
@@ -90,7 +91,8 @@ def googleData():
 #Read url in config file
 #31 AUG 2018
 def readconfigfile(filename): 
-    df_confile = pandas.read_csv('lib\\download.cfg')
+    #df_confile = pandas.read_csv('lib\\download.cfg')
+    df_confile = globaldf.read('lib\\download.cfg')
     df_result = df_confile[df_confile.FILENAME==filename]    
     return df_result['URL'].iloc[0]    
 
