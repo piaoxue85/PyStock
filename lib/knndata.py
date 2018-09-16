@@ -177,6 +177,21 @@ def formatGoogleData(df_data2):
         
         return df_data2
 
+def formatYahooData(df_data2):
+
+        #Change all column labels to upper case, all columns label are in upper case in the entire program
+        llabels = df_data2.columns.values.tolist()
+        ulabels = map(str.upper,llabels)
+        df_data2.columns = [ulabels]
+        df_data2 = df_data2[['DATE','OPEN','HIGH','LOW','CLOSE','VOLUME','ADJ CLOSE']]
+##        df_data2['OPEN'].astype('float')
+##        df_data2['HIGH'].astype('float')
+##        df_data2['LOW'].astype('float')
+##        df_data2['CLOSE'].astype('float')
+##        df_data2['VOLUME'].astype('float')        
+        
+        return df_data2    
+
 
 #Replaced df_data2= df_data2.fillna(method='ffill'), code to be removed
 #26 AUG 2018

@@ -23,9 +23,6 @@ global df_idxdata
 global market
 global fheader
 
-import uuid
-
-
 fheader = "SYMBOL,URL,DATE,MARKET"
 
 def run():
@@ -97,7 +94,7 @@ def run():
     mtflag = True
 
     if mtflag == True:
-        output = pool.map(download,urls[0:c])            
+        output = pool.map(download,urls[0:c])
     else:
         for i in range(0,c):
             download(urls[i])

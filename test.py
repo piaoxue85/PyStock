@@ -86,7 +86,24 @@ def main_getdata():
         print "See " + fs
         
 def main_download():
-        dl.transactions()
+        #dl.transactions()
+
+
+
+        url1 = 'https://query1.finance.yahoo.com/v7/finance/download/symbol?period1=1284559200&period2=1537020000&interval=1d&events=history&crumb=5m0v4UmYimf'
+##        df = dl.downloadfromgoogle(url)
+##        print df
+
+
+        market = 'NYSE'
+        dfs = mn.prepareRefDf(market)
+        df_googleData = dfs[0]
+        ls_symbols = fn.readsymbols(df_googleData,market)
+        for symbol in ls_symbols:
+                print '"' + symbol + '",'
+                
+
+        return
 
 def main_backtest():
 
@@ -163,14 +180,15 @@ def main_analyse():
         #df_googleData = pd.read_csv(filepath)
 
         
-        markets = ['NYSE']
+        markets = ['ASX']
         for market in markets:
                 dfs = mn.prepareRefDf(market)
                 df_googleData = dfs[0]
-                ls_symbols2 = fn.readsymbols(df_googleData,market)              
+                ls_symbols2 = fn.readsymbols(df_googleData,market)
+                ls_symbols2 = ['ASX-A2M']
                 run(ls_symbols2, dfs)
 
-        markets = ['NYSE']
+        markets = ['ASX']
         for market in markets:
                 consol.run(market)
         

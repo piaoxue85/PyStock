@@ -21,13 +21,9 @@ def update(df):
     
     for i in GLOBAL_LS_DF:
 
-        if i[0] == df[0]:
-            print '----'
-            print i[0]
-            print df[0]            
+        if i[0] == df[0]:       
             GLOBAL_LS_DF[c] = df
             inList = True
-            print 'updated ' + df[0] + ' ' + str(c)
 
         c = c + 1
         
@@ -48,15 +44,12 @@ def read(filepath, pfile=True):
     
     for i in GLOBAL_LS_DF:
         if i[0] == filepath:
-                print 'Read from memory'
-                print i[0]
-                print filepath
                 df_ret = i[1]
                 inCache = True
 
     if inCache == False and pfile == True:
         try:
-            print 'Read from file'
+
             df_ret = pandas.read_csv(filepath)
             GLOBAL_LS_DF.append([filepath,df_ret])
             

@@ -1,6 +1,7 @@
 import csv
 from lib import sharedfunctions as fn
 from lib import knndata
+from lib import globaldf
 import datetime as dt
 import os.path
 import pandas as pd
@@ -28,8 +29,7 @@ def main(market):
 
     directory = "data\\google\\"
     filepath = directory + "gdata.csv"
-    global df_googleData
-    df_googleData = pd.read_csv(filepath)
+    df_googleData = globaldf.read(filepath)
     
     ls_symbols = fn.readsymbols(df_googleData,market)
 
