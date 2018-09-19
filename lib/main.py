@@ -156,8 +156,8 @@ def run(s, dfs):
         pe = 0
 
         try:
-                eps = float(eps)
-                pe = ls_data[-1][headers.index("CLOSE")] / eps
+                eps = round(float(eps),2)
+                pe = round(ls_data[-1][headers.index("CLOSE")] / eps,2)
         except:
                 eps = 'N/A'
                 pe = 'N/A'

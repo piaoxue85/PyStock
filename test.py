@@ -185,7 +185,7 @@ def main_analyse():
                 dfs = mn.prepareRefDf(market)
                 df_googleData = dfs[0]
                 ls_symbols2 = fn.readsymbols(df_googleData,market)
-                ls_symbols2 = ['ASX-A2M']
+                ls_symbols2 = ['ASX-CBA']
                 run(ls_symbols2, dfs)
 
         markets = ['ASX']

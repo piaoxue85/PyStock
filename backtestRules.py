@@ -52,7 +52,7 @@ para  = ''
 #ls_rules = [1,2,3,4,5,6,6.1,7,8,8.1,8.2,8.3,8.4,9,10,11,12,13, 14.93070,14.92080,14.143070,14.142080]
 
 #BUY RULES
-brules = [6,8,8.1,8.2,8.3,8.4,14.93070,14.143070,14.253070,16]
+brules = [6,14.93070,14.143070,14.253070,16]
 #brules = [14.93070,14.143070,14.253070, 16]
 #SELL RULES
 srules = brules
@@ -636,7 +636,7 @@ if __name__ == '__main__':
         main()
         print "[" + para + "]"
     else:
-        markets = ['HSI']
+        markets = ['NYSE','ASX']
         for market in markets:
                 main(market)
         

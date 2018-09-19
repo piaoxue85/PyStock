@@ -11,6 +11,8 @@ import itertools
 from lib import sharedfunctions as fn
 from lib import download as dl
 from lib import formatter as fileformatter
+from lib import globaldf
+from lib import fnlist
 
 from lib import knn
 from lib import knndata 
@@ -103,8 +105,13 @@ def execute(symbol, arg_df_btrans, arg_df_strans, fromDate, toDate):
         df_trans['TOT.PROFITPCT1D'] = df_trans['RZ.PROFITPCT1D'] + df_trans['URZ.PROFITPCT1D']
         df_trans['TOT.PROFITPCT252D'] = df_trans['TOT.PROFITPCT1D'] * 252
         
-        numcols = ['P.CASHONHAND','S.CASHONHAND','RZ.PROFITPCT','URZ.PROFITPCT','TOT.PROFITPCT','ONHAND','VALUE']
+        numcols = ['P.CASHONHAND','S.CASHONHAND','RZ.PROFITPCT','URZ.PROFITPCT','TOT.PROFITPCT','ONHAND','VALUE','CAPITAL.USED']
         df_trans = rounddf(df_trans, numcols, 2)
+
+        prefixes = ['RZ.','URZ.','TOT.']
+        colnames = df_trans.columns.values.tolist()
+        pctcols = fnlist.findByPrefix(colnames, prefixes)
+        df_trans = rounddf(df_trans, pctcols, 4)     
 
         df_stat = analyse(symbol, df_trans)
         df_stat['TOT.DAYS'] = (toDate - fromDate).days
@@ -337,6 +344,9 @@ def pair(df_trans, sDate, eDate):
                 price = df_trans.iloc[i]['PRICE']
                 amount = df_trans.iloc[i]['CASHONHAND']
                 tdate = df_trans.iloc[i]['DATE']
+                stoploss = df_trans.iloc[i]['STOPLOSS']
+                targetprice = df_trans.iloc[i]['TARGET']
+                maxhold = df_trans.iloc[i]['MAXHOLD']
               
                 try:
                     shares = float(str(shares).replace(",", ""))
@@ -359,20 +369,54 @@ def pair(df_trans, sDate, eDate):
                     aprice = 0
 
                 try:
-                        tdate = dt.datetime.strptime(tdate, '%Y-%m-%d').date()
-                        ls_transhd = ['SYMBOL','DATE','SHARES','PRICE','CASHONHAND']
-                        trans = [symbol,tdate,shares,aprice,amount]
+                    stoploss = float(str(stoploss).replace(",", ""))
+                except:
+                    stoploss = 0
 
+                try:
+                    targetprice = float(str(targetprice).replace(",", ""))
+                except:
+                    targetprice = 0
+
+                try:
+                    maxhold = float(str(maxhold).replace(",", ""))
+                except:
+                    maxhold = 0
+
+                tprofit = ''
+                tprofitpct = ''
+                tprofitpct1d = ''
+                tprofitpct252d = ''
+
+                if targetprice > 0:
+                        tprofit = round((targetprice - price) * shares,2)
+                        tprofitpct = round((tprofit / (price * shares)) *  100 ,2)
+
+                if targetprice > 0 and maxhold > 0:
+                        tprofitpct1d = round((tprofitpct / maxhold) ,4)
+                        tprofitpct252d = round(tprofitpct1d * 252 ,4)
+                    
+                try:
+                        tdate = dt.datetime.strptime(tdate, '%Y-%m-%d').date()
+
+                        ls_btranshd = ['SYMBOL','DATE','SHARES','PRICE','CASHONHAND','STOPLOSS','TARGETPRICE','MAXHOLD','TAR.PROFIT','TAR.PROFITPCT','TAR.PROFITPCT1D','TAR.PROFITPCT252D']
+                        ls_stranshd = ['SYMBOL','DATE','SHARES','PRICE','CASHONHAND']
+                        
+                        #BUY
                         if shares > 0:
                                 if tdate >= sDate and tdate < eDate:
+                                        trans = [symbol,tdate,shares,aprice,amount,stoploss,targetprice,maxhold, tprofit, tprofitpct,tprofitpct1d, tprofitpct252d]                                          
                                         blist.append(trans)
                         #SELL
                         elif shares <0:
+
+                                trans = [symbol,tdate,shares,aprice,amount]                                
                                 slist.append(trans)
 
                 except Exception as e:
                         
                         print symbol + ' - ' + str(e)
+
 
         p = len(blist)
         q = len(slist)
@@ -425,11 +469,11 @@ def pair(df_trans, sDate, eDate):
                                         strans = copy.copy(slist[j])
                                         strans[2] = -abs(sqty)                                        
 
-                                        bamt = blist[i][3] * abs(sqty)					
-                                        samt = slist[j][3] * abs(sqty)
+                                        bamt = round(blist[i][3] * abs(sqty),2)				
+                                        samt = round(slist[j][3] * abs(sqty),2)
 
-                                        btrans[-1] = -abs(bamt)
-                                        strans[-1] = abs(samt)
+                                        btrans[4] = -abs(bamt)
+                                        strans[4] = abs(samt)
 
                                         ls_btrans.append(btrans)
                                         ls_strans.append(strans)
@@ -445,17 +489,17 @@ def pair(df_trans, sDate, eDate):
                         bdate = blist[i][1]
                         sdate = bdate
                         sqty = blist[i][2]
-                        bamt = blist[i][3] * abs(sqty)
+                        bamt = round(blist[i][3] * abs(sqty),4)
 
                         btrans = copy.copy(blist[i])
                         btrans[2] = abs(sqty)
-                        btrans[-1] = -abs(bamt)
+                        btrans[4] = -abs(bamt)
 
                         ls_btrans.append(btrans)
 
         #ADD COLUMN HEADER FOR DATAFRAME
-        ls_btrans.insert(0,ls_transhd)
-        ls_strans.insert(0,ls_transhd)
+        ls_btrans.insert(0,ls_btranshd)
+        ls_strans.insert(0,ls_stranshd)
 
         df_btrans = knndata.getdfdata(ls_btrans)
         df_strans = knndata.getdfdata(ls_strans)
@@ -533,10 +577,37 @@ def get_dfstopprofit_dfstoploss(df_tdata, bdate, tpp, slp):
 
         return df_profit, df_loss, df_pl, sprice
 
+def openPosition(df_results):
+        
+        df_open = df_results[(df_results.POSITION == 'OPEN')]
+
+        prefixes = ['S.','RZ.','URZ.']
+        colnames = df_open.columns.values.tolist()
+        ls_delcols = fnlist.findByPrefix(colnames, prefixes)        
+        ls_delcols.append('HOLDUNTIL')
+        
+        for delcol in ls_delcols:
+                del df_open[delcol]
+
+        df_open['DAYSLEFT'] = np.where(df_open['P.MAXHOLD'] > 0, df_open['P.MAXHOLD'] - df_open['HOLDDAYS'], 0)
+        df_open = rounddf(df_open, ['DAYSLEFT'], 0)
+        
+        df_open['STOPLOSSACTION'] = np.where(df_open['P.STOPLOSS'] > df_open['PRICE'], '<font color=\'RED\'><b>ATTENTION</b></font>', '')
+        
+        fpath = 'results\\'
+        f1 = fpath + 'openpos.csv'
+        globaldf.update([f1,df_open])
+        globaldf.to_csv(f1)        
+
+        f2 = fpath + 'openpos.htm'        
+        fileformatter.convertfile(f1, f2)
+        
+        return df_open
+                
         
 def run(sDate, eDate, orderfile, outputid,usecache=False):
 
-        df_trans = pd.read_csv(orderfile)
+        df_trans = globaldf.read(orderfile)
         stats = []
         ls1 = df_trans.SYMBOL.unique()
 
@@ -559,12 +630,15 @@ def run(sDate, eDate, orderfile, outputid,usecache=False):
                         df_result, df_stat = execute(sym, df_btrans, df_strans, sDate, eDate)
                         df_stats = fn.dfconcat(df_stats,df_stat)
                         df_results = fn.dfconcat(df_results,df_result)
-                
-        fpath = 'results\\transanalysis\\stat-' + outputid + '.csv'
-        df_stats.to_csv(fpath,index=False)
 
-        fpath = 'results\\transanalysis\\trans-' + outputid + '.csv'
-        df_results.to_csv(fpath,index=False)
+        fpath = 'results\\transanalysis\\stat' + outputid + '.csv'        
+        globaldf.update([fpath,df_stats])
+        globaldf.to_csv(fpath)
+        
+        fpath = 'results\\transanalysis\\trans' + outputid + '.csv'
+        globaldf.update([fpath,df_results])
+        globaldf.to_csv(fpath)
+        openPosition(df_results)
         
         return df_results, df_stats
 
@@ -613,7 +687,7 @@ def writeExcel():
 
 def main():
 
-        sDate = '07/01/2010'
+        sDate = '01/01/2018'
         sDate = dt.datetime.strptime(sDate, '%m/%d/%Y').date()
 
         eDate = '12/31/2018'
@@ -640,7 +714,7 @@ def readOrderFile(filepath):
         
         return df
 
-def formatOrder(symbol='',odate='',price=0,quantity=0,transtype=''):
+def formatOrder(symbol='',odate='',price=0,quantity=0,transtype='',stoploss=0,targetprice=0,maxhold=0):
         
         colheader = "SYMBOL"
         data = str(symbol)
@@ -667,6 +741,18 @@ def formatOrder(symbol='',odate='',price=0,quantity=0,transtype=''):
         colheader = colheader + ",CASHONHAND"
         amount = round((-quantity * price) - commission,2)
         data = data + "," + str(amount)
+
+        colheader = colheader + ",STOPLOSS"
+        stoploss = round(stoploss,2)
+        data = data + "," + str(price)
+
+        colheader = colheader + ",TARGET"
+        targetprice = round(targetprice,2)
+        data = data + "," + str(targetprice)
+
+        colheader = colheader + ",MAXHOLD"
+        maxhold = round(maxhold,2)
+        data = data + "," + str(maxhold)        
 
 ##        colheader = colheader + ",TURNOVER"
 ##        data = data + "," + str(abs(amount))

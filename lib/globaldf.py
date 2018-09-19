@@ -29,9 +29,7 @@ def update(df):
         
     if inList == False:
         GLOBAL_LS_DF.append(df)
-        print 'new add ' + df[0]
 
-    print '----'        
 
     return df
 
@@ -59,20 +57,18 @@ def read(filepath, pfile=True):
 
     return df_ret
 
-def save(filepath):
+def to_csv(filepath):
 
     df = read(filepath,False)
-    print 'Saving ' + filepath
     df.to_csv(filepath,index=False)        
 
     return
 
-def saveall():
+def all_to_csv():
 
     global GLOBAL_LS_DF
     
     for i in GLOBAL_LS_DF:
-        print 'Saving all ' + i[0]
         i[1].to_csv(i[0], index=False)
 
     return

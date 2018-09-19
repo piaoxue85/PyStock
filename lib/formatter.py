@@ -119,5 +119,5 @@ def convertfile(csvfile,htmlfile):
                 if len(line) > 0:
                         f.write(line + "\n")
 
-        f.close()
+        f.close()        
                 
