@@ -577,32 +577,46 @@ def get_dfstopprofit_dfstoploss(df_tdata, bdate, tpp, slp):
 
         return df_profit, df_loss, df_pl, sprice
 
-def openPosition(df_results):
-        
-        df_open = df_results[(df_results.POSITION == 'OPEN')]
+def analysePosition(df_results):
 
-        prefixes = ['S.','RZ.','URZ.']
-        colnames = df_open.columns.values.tolist()
-        ls_delcols = fnlist.findByPrefix(colnames, prefixes)        
-        ls_delcols.append('HOLDUNTIL')
-        
-        for delcol in ls_delcols:
-                del df_open[delcol]
+        positions = ['CLOSED','OPEN']
 
-        df_open['DAYSLEFT'] = np.where(df_open['P.MAXHOLD'] > 0, df_open['P.MAXHOLD'] - df_open['HOLDDAYS'], 0)
-        df_open = rounddf(df_open, ['DAYSLEFT'], 0)
+        for position in positions:
         
-        df_open['STOPLOSSACTION'] = np.where(df_open['P.STOPLOSS'] > df_open['PRICE'], '<font color=\'RED\'><b>ATTENTION</b></font>', '')
-        
-        fpath = 'results\\'
-        f1 = fpath + 'openpos.csv'
-        globaldf.update([f1,df_open])
-        globaldf.to_csv(f1)        
+                df_open = df_results[(df_results.POSITION == position)]
 
-        f2 = fpath + 'openpos.htm'        
-        fileformatter.convertfile(f1, f2)
+                if position == 'OPEN':
+                        prefixes = ['S.','RZ.','URZ.']
+                        colnames = df_open.columns.values.tolist()
+                        ls_delcols = fnlist.findByPrefix(colnames, prefixes)        
+                        ls_delcols.append('HOLDUNTIL')
+
+                if position == 'CLOSED':
+                        prefixes = ['RZ.','URZ.']
+                        colnames = df_open.columns.values.tolist()
+                        ls_delcols = fnlist.findByPrefix(colnames, prefixes)        
+                        ls_delcols.append('HOLDUNTIL')
+                
+                for delcol in ls_delcols:
+                        del df_open[delcol]
+
+                if position == 'OPEN':
+                        df_open['DAYSLEFT'] = np.where(df_open['P.MAXHOLD'] > 0, df_open['P.MAXHOLD'] - df_open['HOLDDAYS'], 0)
+                        df_open = rounddf(df_open, ['DAYSLEFT'], 0)
+                
+                        df_open['STOPLOSSACTION'] = np.where(df_open['P.STOPLOSS'] > df_open['PRICE'], '<font color=\'RED\'><b>ATTENTION</b></font>', '')
+
+                fname = position.lower() + 'pos'
+                
+                fpath = 'results\\'
+                f1 = fpath + fname + '.csv'
+                globaldf.update([f1,df_open])
+                globaldf.to_csv(f1)        
+
+                f2 = fpath + fname + '.htm'        
+                fileformatter.convertfile(f1, f2)
         
-        return df_open
+        return
                 
         
 def run(sDate, eDate, orderfile, outputid,usecache=False):
@@ -638,7 +652,7 @@ def run(sDate, eDate, orderfile, outputid,usecache=False):
         fpath = 'results\\transanalysis\\trans' + outputid + '.csv'
         globaldf.update([fpath,df_results])
         globaldf.to_csv(fpath)
-        openPosition(df_results)
+        analysePosition(df_results)
         
         return df_results, df_stats
 
