@@ -19,6 +19,10 @@ def appendhistorical(s):
 
     df_data = knndata.getRawData(s)
     df_data['DATE'] =  pd.to_datetime(df_data['DATE']).apply(lambda x: x.date())
+        
+    fn1 = fn.filenameFormatter(s)
+    filepath1 = directory1 + fn1 + ".csv"
+
     df_data.to_csv(filepath1, index=False)
 
     return df_data

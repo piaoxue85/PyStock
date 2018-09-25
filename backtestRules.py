@@ -42,7 +42,7 @@ global srules
 global bpatterns
 global spatterns
 
-sDate = '07/01/2015'
+sDate = '07/01/2016'
 sDate = dt.datetime.strptime(sDate, '%m/%d/%Y').date()
         
 eDate = '12/31/2018'
@@ -99,10 +99,10 @@ global df_googleData
 
 def getSymbols():
         
-        filepath = gdir + "gdata.csv"
+        #filepath = gdir + "gdata.csv"
         global df_googleData
         #df_googleData = pd.read_csv(filepath)
-        df_googleData = globaldf.read(filepath)
+        #df_googleData = globaldf.read(filepath)
             
         ls_symbols1 = fn.readsymbols(df_googleData,'HSI')
         ls_symbols2 = fn.readsymbols(df_googleData,'ASX')
@@ -121,7 +121,7 @@ def getSymbols():
 
         ls_symbols = ls_symbols1 + ls_symbols2 + ls_symbols3
 
-        ls_symbols =['ASX-CBA']
+        ls_symbols =['ASX-ASX']
 
         return ls_symbols
 
@@ -179,14 +179,15 @@ def main(market='ASX'):
 
         filepath = gdir + "gdata.csv"
         global df_googleData
-        df_googleData = pd.read_csv(filepath)
+        #df_googleData = pd.read_csv(filepath)
+        df_googleData = globaldf.read(filepath)
         
         odir = "results\\listdata\\"
         ofilename = 'list-' + market + '.csv'
         filepath = odir + ofilename
 
         print filepath
-        df_output = pd.read_csv(filepath)
+        df_output = globaldf.read(filepath)
       
         df_prices = df_output[['SYMBOL','DATE','OPEN','HIGH','LOW','CLOSE','CLOSECHG']]
         df_prices = df_prices[df_prices['CLOSE'] > 0]
@@ -233,7 +234,8 @@ def main(market='ASX'):
                                 selldate = Ss_date[i]
                                 
                         ls_selldate.append(selldate)                                                                
-                df_orders['SELLDATE'] = pd.Series(ls_selldate)                        
+                df_orders['SELLDATE'] = pd.Series(ls_selldate)
+
                 
                 df_orders.to_csv(rfile,index=False)                  
                 print 'See ' + rfile
@@ -300,7 +302,9 @@ def pairingorder(symbol, df_tdata, keepoldresults = False):
                                           
         try:
                 df_backtestResults = pd.read_csv(bsfile, dtype={'P.TYPE': 'S30', 'S.TYPE': 'S30'})
+                gloabldf.update([bsfile,df_backtestResults])
                 df_backtestTrans = pd.read_csv(btfile, dtype={'P.TYPE': 'S30', 'S.TYPE': 'S30'})
+                gloabldf.update([btfile,df_backtestTrans])                
         
         except Exception as e:
 
@@ -480,13 +484,16 @@ def createorder(symbol, dataset, df_dataset):
                         df_b, df_s, df_pl = select(symbol,dataset, df_dataset, info,rule)
 
                 bfile = bdir + 'buy-' + str(symbol) + '-' + str(rule) + '.csv'
-                df_b.to_csv(bfile,index=False)
+                globaldf.update([bfile,df_b])
+                #df_b.to_csv(bfile,index=False)
                 
                 sfile = sdir + 'sell-' + str(symbol) + '-' + str(rule) + '.csv'
-                df_s.to_csv(sfile,index=False)
+                globaldf.update([sfile,df_s])
+                #df_s.to_csv(sfile,index=False)
 
                 plfile = sdir + 'fixedpl-' + str(symbol) + '-' + str(rule) + '.csv'
-                df_pl.to_csv(plfile,index=False)                
+                globaldf.update([plfile,df_pl])
+                #df_pl.to_csv(plfile,index=False)                
  
         return
 
@@ -626,17 +633,30 @@ def findResults(df, pctpa):
                 
         return df
         
-#DIRECT EXECUTING        
+#DIRECT EXECUTION
 if __name__ == '__main__':
 
-    argv = sys.argv    
-    if len(argv)>1:
-        para = ",".join(argv)
-        market = argv[1]
-        main()
-        print "[" + para + "]"
-    else:
-        markets = ['NYSE','ASX']
-        for market in markets:
-                main(market)
+        filepath = gdir + "gdata.csv"
+        global df_googleData
+        #df_googleData = pd.read_csv(filepath)
+        df_googleData = globaldf.read(filepath)        
+
+        argv = sys.argv    
+        if len(argv)>1:
+                para = ",".join(argv)
+                market = argv[1]
+                main()
+                print "[" + para + "]"
+        else:
+
+                #Parameters:
+                #Run symbols if ls_symbols contains values
+                markets = ['NYSE']
+                ls_symbols = []
+
+                if len(ls_symbols) > 0:
+                        test(ls_symbols)
+                else:
+                        for market in markets:
+                                main(market)
         

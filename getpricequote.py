@@ -22,7 +22,7 @@ def run(url,append):
 
     df_data = dl.quotefromgoogle(url)
 
-    #df_data = pd.read_csv(filepath, dtype={'SYMBOL1': 'S30', 'SYMBOL2': 'S30'})
+    df_data['SOURCE'] = 'GOOG-Q'
 
     #ERROR QUOTE
     df_data1 = df_data.iloc[(df_data['OPEN'] == "#N/A") | (df_data['OPEN'] == "Loading...")]
@@ -34,6 +34,7 @@ def run(url,append):
     directory = "data\\dayquote\\"
 
     for i in range(0,c):
+        
         fn1 = df_data.iloc[i]["SYMBOL2"]
         fn1 = fn.filenameFormatter(str(fn1))
         filepath = directory + fn1 + ".csv"
@@ -43,7 +44,7 @@ def run(url,append):
         items = []
         items.append(s)
         
-        for j in range(2,10):
+        for j in range(2,11):
             items.append(df_data.iloc[i][j])
 
         thefile = open(filepath, 'w')
@@ -52,12 +53,13 @@ def run(url,append):
         thefile.write(myString)
         thefile.close()
 
-    ls_symbols = []    
-    c = len(df_data1)
-    for i in range(0, c):
-        s = str(df_data1.iloc[i]["SYMBOL2"])
-        if s <> "nan" and len(s) <> 0 :        
-            ls_symbols.append(df_data1.iloc[i]["SYMBOL2"])
+##    ls_symbols = []    
+##    c = len(df_data1)
+##    for i in range(0, c):
+##        
+##        s = str(df_data1.iloc[i]["SYMBOL2"])
+##        if s <> "nan" and len(s) <> 0 :        
+##            ls_symbols.append(df_data1.iloc[i]["SYMBOL2"])
 
 ##    for s in ls_symbols:
 ##
@@ -70,24 +72,20 @@ def run(url,append):
 ##        else:
 ##            dl.quote(s, filepath1)
 
-    if append == True:
-
-        print "All quotes ready, appending intraday"
-
-        c= len(df_data)
-        for i in range(0, c-1):
-            appendintraday(df_data.iloc[i]["SYMBOL2"])
-            #appendhistorical(df_data.iloc[i]["SYMBOL2"])
-
-        c= len(df_data1)
-        for i in range(0, c-1):
-            appendintraday(df_data1.iloc[i]["SYMBOL2"])
-            #appendhistorical(df_data1.iloc[i]["SYMBOL2"])
+##    if append == True:
+##        print "All quotes ready, appending intraday"
+##
+##        c= len(df_data)
+##        for i in range(0, c-1):
+##            appendintraday(df_data.iloc[i]["SYMBOL2"])
 
     print "All quotes updated"
 
     return
 
+##Bypassed rountine, to be revised
+##Too many errors in data
+##25 Sep 2018
 def appendintraday(s):
 
     directory = "data\dayquote\\"
@@ -107,7 +105,6 @@ def appendintraday(s):
 
         for row in reader1:
             row1 = row
-
 
         if os.path.exists(filepath2):
             rowCount = 0

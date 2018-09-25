@@ -723,6 +723,7 @@ def readOrderFile(filepath):
         try:
                 df = pd.read_csv(filepath,dtype={'SYMBOL': object})
                 df['DATE'] =  pd.to_datetime(df['DATE']).apply(lambda x: x.date())
+                globaldf.update([filepath,df])
         except Exception as e:
                 print "Cannot open " + filepath
         

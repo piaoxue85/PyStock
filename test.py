@@ -30,18 +30,17 @@ import csv
 global argv
 global ofilename
 
+global df_googleData
+
+gdir = "data\\google\\"
+
 para  = ''
 
 def run(ls_symbols, dfs):
 
         for s in ls_symbols:
-                try:
-                        mn.run(s, dfs)
-                except SystemExit as e:
-                        print "System Exit Error " + str(e)
-                except Exception, e:
-                        print "Error " + str(e)
-
+                mn.run(s, dfs)
+                
         return
 
 def main_bstrans():
@@ -178,7 +177,6 @@ def main_analyse():
         filepath = directory + "gdata.csv"
         global df_googleData
         #df_googleData = pd.read_csv(filepath)
-
         
         markets = ['ASX']
         for market in markets:
@@ -188,9 +186,9 @@ def main_analyse():
                 ls_symbols2 = ['ASX-CBA']
                 run(ls_symbols2, dfs)
 
-        markets = ['ASX']
-        for market in markets:
-                consol.run(market)
+##        markets = ['ASX']
+##        for market in markets:
+##                consol.run(market)
         
         #consol.run(market)        
         
@@ -208,8 +206,38 @@ def main_analyse():
 
         #dl.quotefromgoogle(url,"download.htm")
 
+def getSymbols():
+        
+        global df_googleData
+            
+        ls_symbols1 = fn.readsymbols(df_googleData,'HSI')
+        ls_symbols2 = fn.readsymbols(df_googleData,'ASX')
+        ls_symbols3 = fn.readsymbols(df_googleData,'NYSE')
+
+        ls_symbols = ls_symbols1 + ls_symbols2 + ls_symbols3
+
+        return ls_symbols
+
+def main_data():
+        
+        ls_symbols = getSymbols()
+        for symbol in ls_symbols:
+            fnn = fn.filenameFormatter(symbol)
+            hdir = "data\\historical\\"            
+            filepath = hdir + fnn + ".csv"
+
+            #df_data1 = pandas.read_csv(filepath)
+            df_data1 = globaldf.read(filepath)
+            df_data1['SOURCE'] = 'GOOG-H'            
+            globaldf.update([filepath,df_data1])                
+            globaldf.to_csv(filepath)
+
+
              
 status = "test"
+filepath = gdir + "gdata.csv"
+df_googleData = globaldf.read(filepath)  
+
 if status <> "running":
         main_analyse()
 else:

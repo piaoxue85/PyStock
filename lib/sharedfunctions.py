@@ -359,7 +359,6 @@ def readTrans(df_trans, sym):
                         
         if qty > 0:
                 avgprice = amt / qty
-
                 
         return avgprice, qty, amt, accmulamt, bTrans, sTrans
 

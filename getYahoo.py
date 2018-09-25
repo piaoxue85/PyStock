@@ -22,8 +22,10 @@ def getSymbols(market):
                 filepath = directory + "gdata.csv"
                 df_googleData = globaldf.read(filepath)
                 ls_symbols = fn.readsymbols(df_googleData,market)
+
+        ls_symbols = ['0388']
                 
-        return ls_symbols[0:10]
+        return ls_symbols
 
 def symformatter(symbol,market='HSI'):
 
@@ -41,9 +43,8 @@ def removeDataFile(ls_symbols):
         print 'Removing data files'
         df_confile = globaldf.read('getyahoo.cfg')
         ddir = df_confile[df_confile.KEY=='DDIR'].iloc[0]['VALUE']
-        ls_symbols = getSymbols(market)
         for symbol in ls_symbols:
-                symbol = symformatter(symbol,market)
+                symbol = symformatter(symbol)
                 path = ddir + symbol + '.csv'
                 try:
                         print 'Removing ' + path
@@ -64,7 +65,7 @@ def readDataFile(ls_symbols):
                         df_yahoo = knndata.formatYahooData(df_yahoo)
                         opath = odir + symbol + '.csv'
                         globaldf.update([opath,df_yahoo])
-                        globaldf.save(opath)
+                        globaldf.to_csv(opath)
                 except Exception as e:
                         print "Data error " + path + ' ' + str(e)
                         continue
@@ -77,6 +78,8 @@ def genDownloadFile(ls_symbols,fname):
         cookies = 'vzirKUmjia0'
 
         url = 'https://query1.finance.yahoo.com/v7/finance/download/symbol?period1=1284559200&period2=1537022868&interval=1d&events=history&crumb=' + cookies
+
+        print url
 
 
         pycode = ''
@@ -113,7 +116,8 @@ def main():
         sel = input("Selection: ")
 
         markets = ['OnHand','NYSE','HSI','ASX']
-        #TO BE ADDED - ONHAND SYMBOL,PROBLEM TO BE SOLVED
+
+        markets = ['HSI']
 
         for market in markets:
                 ls_symbols = getSymbols(market)

@@ -8,7 +8,6 @@ import os
 import sys, getopt
 import time
 import shutil
-#import facebook
 import pandas
 import math
 
@@ -31,8 +30,8 @@ hdir = "data\\historical\\"
 qdir = "data\\dayquote\\"
 kdir = "data\\knndata\\"
 
-hheaders = ['DATE','OPEN','HIGH','LOW','CLOSE','VOLUME','ADJ CLOSE']
-qheaders = ['SYMBOL','CLOSE','DATE','TIME','CHANGE','OPEN','HIGH','LOW','VOLUME']
+hheaders = ['DATE','OPEN','HIGH','LOW','CLOSE','VOLUME','ADJ CLOSE','SOURCE']
+qheaders = ['SYMBOL','CLOSE','DATE','TIME','CHANGE','OPEN','HIGH','LOW','VOLUME','SOURCE']
 
 def openFile(fnn):
 
@@ -108,7 +107,6 @@ def getData(symbol, beginDate, endDate, wfile=True, cache=False):
     df = df_rawdata[(df_rawdata['DATE'] >= beginDate) & (df_rawdata['DATE'] <= endDate)]
 
     df_tdata = prepareData(df, symbol,wfile)
-
     
     return df_tdata
 
@@ -124,17 +122,22 @@ def run():
         for d in range(0,1):
             prepareData(df_rawdata, s, d)
 
-def formatQuote(fdate,Open=0,High=0,Low=0,Close=0,Volume=0,AdjClose=0):
-    qd = pandas.DataFrame([[fdate,float(Open),float(High),float(Low),float(Close),float(Volume),float(AdjClose)]], columns=hheaders)
+def formatQuote(fdate,Open=0,High=0,Low=0,Close=0,Volume=0,AdjClose=0,Source=''):
+    qd = pandas.DataFrame([[fdate,float(Open),float(High),float(Low),float(Close),float(Volume),float(AdjClose),str(Source)]], columns=hheaders)
     return qd
 
 def readQuote(filepath):
     #LATEST QUOTE
-    df_data = pandas.read_csv(filepath,names = qheaders)
+    df_data = pandas.read_csv(filepath,names=qheaders)
+
+    globaldf.update([filepath,df_data])
     df_data = changedftouppercase(df_data)
+
     df_data['DATE'] =  pandas.to_datetime(df_data['DATE']).apply(lambda x: x.strftime('%m/%d/%Y'))
     df_data['DATE'] =  pandas.to_datetime(df_data['DATE']).apply(lambda x: x.strftime('%Y-%m-%d'))
     df_data['DATE'] =  pandas.to_datetime(df_data['DATE']).apply(lambda x: x.date())
+
+    df_data = df_data.iloc[-1]
     
     return df_data
 
@@ -146,11 +149,21 @@ def getQuoteFilepath(s):
 def appendQuote(df_data1, df_data2):
 
     try:
-        dt_date2 = df_data2.iloc[0]['DATE']
-        df_data1 = df_data1[df_data1.DATE != dt_date2]
-        fdate = dt_date2
-        qd = pandas.DataFrame([[fdate,float(df_data2['OPEN']),float(df_data2['HIGH']),float(df_data2['LOW']),float(df_data2['CLOSE']),float(df_data2['VOLUME']),float(df_data2['CLOSE'])]], columns=hheaders)
-        df_data = fn.dfconcat(df_data1, qd)
+        
+        dt_date2 = df_data2['DATE']
+
+        df_hdata = df_data1[df_data1.DATE == dt_date2]
+        df_hdata = df_hdata[df_hdata.SOURCE <> 'GOOG-Q']
+
+        #If price quote cannot be found in historical data
+        if len(df_hdata) == 0:
+            df_data1 = df_data1[df_data1.DATE != dt_date2]        
+            fdate = dt_date2
+            data = [fdate,float(df_data2['OPEN']),float(df_data2['HIGH']),float(df_data2['LOW']),float(df_data2['CLOSE']),float(df_data2['VOLUME']),float(df_data2['CLOSE']),df_data2['SOURCE']]
+            qd = pandas.DataFrame([data],columns=hheaders)
+            df_data = fn.dfconcat(df_data1, qd)
+        else:
+            df_data = df_data1
 
     except Exception as e:
         
@@ -174,6 +187,7 @@ def formatGoogleData(df_data2):
         df_data2['VOLUME'].astype('float')        
         df_data2= df_data2.fillna(method='ffill')
         df_data2['ADJ CLOSE'] = df_data2['CLOSE']
+        df_data2['SOURCE'] = 'GOOG-H'
         
         return df_data2
 
@@ -184,6 +198,7 @@ def formatYahooData(df_data2):
         ulabels = map(str.upper,llabels)
         df_data2.columns = [ulabels]
         df_data2 = df_data2[['DATE','OPEN','HIGH','LOW','CLOSE','VOLUME','ADJ CLOSE']]
+        df_data2['SOURCE'] = 'YA-H'
 ##        df_data2['OPEN'].astype('float')
 ##        df_data2['HIGH'].astype('float')
 ##        df_data2['LOW'].astype('float')
@@ -192,64 +207,6 @@ def formatYahooData(df_data2):
         
         return df_data2    
 
-
-#Replaced df_data2= df_data2.fillna(method='ffill'), code to be removed
-#26 AUG 2018
-def formatGoogleDataOld(df_data2):
-
-        listdata = []
-
-        #dt_date2 = dt.datetime.strptime(df_data2.iloc[0]['DATE'], '%m/%d/%Y %H:%M:%S').date()
-        #fdate = dt_date2.strftime("%Y-%m-%d")
-
-        c = len(df_data2)
-
-        df_data1 = pandas.DataFrame(columns=[hheaders])
-
-        listdata.append(df_data1)
-
-        llabels = df_data2.columns.values.tolist()
-        ulabels = map(str.upper,llabels)
-        df_data2.columns = [ulabels]
-
-        Open = 0
-        High = 0
-        Low = 0
-        Volume = 0
-        Close = 0
-
-        for j in range(0,c):
-
-            #dt_date2 = dt.datetime.strptime(df_data2.iloc[j]['DATE'], '%m/%d/%Y %H:%M:%S').date()
-            dt_date2 = df_data2.iloc[j]['DATE']
-            fdate = dt_date2.strftime("%Y-%m-%d")
-
-            #25 AUG 2018
-            #If value is #N/A, use last known value
-            #use df_rets = df_rets.fillna(method='bfill') instead
-            
-            if df_data2.iloc[j]['OPEN'] <> '#N/A':
-                Open = float(df_data2.iloc[j]['OPEN'])
-
-            if df_data2.iloc[j]['HIGH'] <> '#N/A':
-                High = float(df_data2.iloc[j]['HIGH'])
-
-            if df_data2.iloc[j]['LOW'] <> '#N/A':
-                Low = float(df_data2.iloc[j]['LOW'])
-
-            if df_data2.iloc[j]['VOLUME'] <> '#N/A':
-                Volume = float(df_data2.iloc[j]['VOLUME'])
-
-            if df_data2.iloc[j]['CLOSE'] <> '#N/A':
-                Close = float(df_data2.iloc[j]['CLOSE'])                
-            
-            qd = pandas.DataFrame([[fdate,Open,High,Low,Close,Volume,Close]], columns=hheaders)
-
-            listdata.append(qd)
-            
-        df_data = pandas.concat(listdata)
-        
-        return df_data
 
 def getRawData(s, readquote = True):
     #HISTORICAL
@@ -263,19 +220,20 @@ def getRawData(s, readquote = True):
 
     #LATEST QUOTE, APPEND ONLY IF TRUE
     if(readquote==True):
+        
         filepath2 = qdir + fnn + ".csv"
         df_data2 = readQuote(filepath2)
         df_data = appendQuote(df_data1,df_data2)
+        
     else:
         df_data = df_data1
 
     df_data['DATE'] =  pandas.to_datetime(df_data['DATE']).apply(lambda x: x.date())
-    
     df_data = df_data.sort('DATE')
 
     #22 AUG 2018
     #For applying index starting from 0
-    df_data.index = range(len(df_data.index))    
+    df_data.index = range(len(df_data.index))
 
     return df_data
 
@@ -480,7 +438,7 @@ def prepareData(df_data, s, wfile=True):
                 h = h + hheaders[0].upper() + ","
                 l = l + str(cr['DATE']) + ","
 
-                for c in range(1, len(hheaders)):
+                for c in range(1, 6):
                     v = float(cr[c]) 
                     h = h + hheaders[c].upper() + ","
                     l = l + str("%.4f" % round(v,4)) + ","
