@@ -42,7 +42,7 @@ global srules
 global bpatterns
 global spatterns
 
-sDate = '07/01/2016'
+sDate = '07/01/2015'
 sDate = dt.datetime.strptime(sDate, '%m/%d/%Y').date()
         
 eDate = '12/31/2018'
@@ -99,10 +99,7 @@ global df_googleData
 
 def getSymbols():
         
-        #filepath = gdir + "gdata.csv"
         global df_googleData
-        #df_googleData = pd.read_csv(filepath)
-        #df_googleData = globaldf.read(filepath)
             
         ls_symbols1 = fn.readsymbols(df_googleData,'HSI')
         ls_symbols2 = fn.readsymbols(df_googleData,'ASX')
@@ -651,7 +648,7 @@ if __name__ == '__main__':
 
                 #Parameters:
                 #Run symbols if ls_symbols contains values
-                markets = ['NYSE']
+                markets = ['ASX','HSI']
                 ls_symbols = []
 
                 if len(ls_symbols) > 0:

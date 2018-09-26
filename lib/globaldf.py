@@ -47,18 +47,19 @@ def read(filepath, pfile=True):
 
     if inCache == False and pfile == True:
         try:
-
             df_ret = pandas.read_csv(filepath)
             GLOBAL_LS_DF.append([filepath,df_ret])
-            
+
         except Exception as e:
             print e
             pass
+
 
     return df_ret
 
 def to_csv(filepath):
 
+    print 'to_csv ' + filepath
     df = read(filepath,False)
     df.to_csv(filepath,index=False)        
 

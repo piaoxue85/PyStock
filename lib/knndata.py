@@ -148,22 +148,32 @@ def getQuoteFilepath(s):
 
 def appendQuote(df_data1, df_data2):
 
+    df_data = pandas.DataFrame()
+
     try:
-        
-        dt_date2 = df_data2['DATE']
-
-        df_hdata = df_data1[df_data1.DATE == dt_date2]
-        df_hdata = df_hdata[df_hdata.SOURCE <> 'GOOG-Q']
-
-        #If price quote cannot be found in historical data
-        if len(df_hdata) == 0:
-            df_data1 = df_data1[df_data1.DATE != dt_date2]        
-            fdate = dt_date2
+        if len(df_data2) > 0:
+            
+            dt_date2 = df_data2['DATE']
+            fdate = dt_date2            
             data = [fdate,float(df_data2['OPEN']),float(df_data2['HIGH']),float(df_data2['LOW']),float(df_data2['CLOSE']),float(df_data2['VOLUME']),float(df_data2['CLOSE']),df_data2['SOURCE']]
             qd = pandas.DataFrame([data],columns=hheaders)
-            df_data = fn.dfconcat(df_data1, qd)
-        else:
+ 
+        if len(df_data1) > 0 and len(df_data2) > 0:
+
+            df_hdata = df_data1[df_data1.DATE == dt_date2]
+            df_hdata = df_hdata[df_hdata.SOURCE <> 'GOOG-Q']
+
+            #If price quote cannot be found in historical data
+            if len(df_hdata) == 0 :
+                df_data1 = df_data1[df_data1.DATE != dt_date2]        
+                df_data = fn.dfconcat(df_data1, qd)
+                df_data['DATE'] =  pandas.to_datetime(df_data['DATE']).apply(lambda x: x.date())
+
+        if len(df_data) == 0:
             df_data = df_data1
+
+        if len(df_data) == 0:
+            df_data = qd
 
     except Exception as e:
         
@@ -215,20 +225,18 @@ def getRawData(s, readquote = True):
 
     #df_data1 = pandas.read_csv(filepath)
     df_data1 = globaldf.read(filepath)
-    df_data1 = changedftouppercase(df_data1)
-    df_data1['DATE'] =  pandas.to_datetime(df_data1['DATE']).apply(lambda x: x.date())    
+    if len(df_data1) > 0:
+        df_data1 = changedftouppercase(df_data1)
+        df_data1['DATE'] =  pandas.to_datetime(df_data1['DATE']).apply(lambda x: x.date())    
 
     #LATEST QUOTE, APPEND ONLY IF TRUE
     if(readquote==True):
-        
         filepath2 = qdir + fnn + ".csv"
         df_data2 = readQuote(filepath2)
-        df_data = appendQuote(df_data1,df_data2)
-        
-    else:
+        df_data = appendQuote(df_data1,df_data2)        
+    else:        
         df_data = df_data1
 
-    df_data['DATE'] =  pandas.to_datetime(df_data['DATE']).apply(lambda x: x.date())
     df_data = df_data.sort('DATE')
 
     #22 AUG 2018

@@ -45,8 +45,6 @@ def main(market):
             
         ls_symbols = fn.readsymbols(df_googleData,market)
 
-        ls_symbols = ['2388']
-
         for symbol in ls_symbols:
                 print symbol
                 ret = select(symbol)
@@ -153,5 +151,5 @@ if __name__ == '__main__':
         main(argv[1])
         print "[" + para + "]"
     else:
-        #main('ASX')
-        main('HSI')
+        main('ASX')
+        #main('HSI')
