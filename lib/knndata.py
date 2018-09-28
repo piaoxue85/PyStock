@@ -207,15 +207,48 @@ def formatYahooData(df_data2):
         llabels = df_data2.columns.values.tolist()
         ulabels = map(str.upper,llabels)
         df_data2.columns = [ulabels]
+        df_data2['DATE'] =  pandas.to_datetime(df_data2['DATE']).apply(lambda x: x.date())        
+        df_data2 = df_data2.replace('null',np.NaN)        
         df_data2 = df_data2[['DATE','OPEN','HIGH','LOW','CLOSE','VOLUME','ADJ CLOSE']]
-        df_data2['SOURCE'] = 'YA-H'
-##        df_data2['OPEN'].astype('float')
-##        df_data2['HIGH'].astype('float')
-##        df_data2['LOW'].astype('float')
-##        df_data2['CLOSE'].astype('float')
-##        df_data2['VOLUME'].astype('float')        
+        numcols = ['OPEN','HIGH','LOW','CLOSE','ADJ CLOSE']
+        df_data2 = globaldf.rounddf(df_data2, numcols, 4)
+        df_data2= df_data2.fillna(method='ffill')        
+        df_data2['SOURCE'] = 'YA-H'      
         
-        return df_data2    
+        return df_data2
+
+##Merging raw data files from different sources
+##28 Sep 2018
+def mergeRawData(df1, df2):
+
+    colname = 'DATE'
+
+    df4 = pandas.DataFrame()
+
+    if len(df1) > 0 and len(df2) > 0:
+        
+        val = df1[colname]
+
+        df3 = df2[~df2[colname].isin(val)]
+
+        df4 = fn.dfconcat(df1,df3)
+
+    if len(df2) == 0:
+
+        df4 = df1
+
+    if len(df4) == 0:
+
+        df4 = df2
+
+    if len(df4) > 0:
+
+        df4 = df4.sort(colname)
+        df4.index = range(len(df4.index))
+        numcols = ['OPEN','HIGH','LOW','CLOSE','ADJ CLOSE']
+        df4 = globaldf.rounddf(df4, numcols, 4)    
+
+    return df4
 
 
 def getRawData(s, readquote = True):

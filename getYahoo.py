@@ -22,8 +22,6 @@ def getSymbols(market):
                 filepath = directory + "gdata.csv"
                 df_googleData = globaldf.read(filepath)
                 ls_symbols = fn.readsymbols(df_googleData,market)
-
-        ls_symbols = ['0388']
                 
         return ls_symbols
 
@@ -63,8 +61,11 @@ def readDataFile(ls_symbols):
                 try:
                         df_yahoo = globaldf.read(path)
                         df_yahoo = knndata.formatYahooData(df_yahoo)
+                        #Read raw data file without reading price quote
+                        df_data0 = knndata.getRawData(symbol,False)
+                        df_result = knndata.mergeRawData(df_data0, df_yahoo)
                         opath = odir + symbol + '.csv'
-                        globaldf.update([opath,df_yahoo])
+                        globaldf.update([opath,df_result])
                         globaldf.to_csv(opath)
                 except Exception as e:
                         print "Data error " + path + ' ' + str(e)
@@ -75,12 +76,9 @@ def readDataFile(ls_symbols):
 
 def genDownloadFile(ls_symbols,fname):
 
-        cookies = 'vzirKUmjia0'
-
-        url = 'https://query1.finance.yahoo.com/v7/finance/download/symbol?period1=1284559200&period2=1537022868&interval=1d&events=history&crumb=' + cookies
+        url = 'https://query1.finance.yahoo.com/v7/finance/download/symbol?period1=511016400&period2=1538056800&interval=1d&events=history&crumb=e9XRBMVGpyl'
 
         print url
-
 
         pycode = ''
         for symbol in ls_symbols:
@@ -109,23 +107,27 @@ def genDownloadFile(ls_symbols,fname):
 
 def main():
 
-        print "1. Remove old data file"
-        print "2. Generate download page"
-        print "3. Read data file"
-        print "4. Exit"
-        sel = input("Selection: ")
+        sel = 0
 
-        markets = ['OnHand','NYSE','HSI','ASX']
+        while sel <> 4:
 
-        markets = ['HSI']
+                print "1. Remove old data file"
+                print "2. Generate download page"
+                print "3. Read data file"
+                print "4. Exit"
+                sel = input("Selection: ")
 
-        for market in markets:
-                ls_symbols = getSymbols(market)
-                if sel==1:
-                        removeDataFile(ls_symbols)
-                elif sel==2:
-                        genDownloadFile(ls_symbols, market)
-                elif sel==3:
-                        readDataFile(ls_symbols)
+                markets = ['OnHand','NYSE','HSI','ASX']
+
+                markets = ['HSI']
+
+                for market in markets:
+                        ls_symbols = getSymbols(market)
+                        if sel==1:
+                                removeDataFile(ls_symbols)
+                        elif sel==2:
+                                genDownloadFile(ls_symbols, market)
+                        elif sel==3:
+                                readDataFile(ls_symbols)
 
 main()

@@ -1,21 +1,19 @@
 from lib import download as dl
-import csv
 from lib import sharedfunctions as fn
 from lib import knndata
+from lib import globaldf
+
 import datetime as dt
 import pandas
 import numpy as np
 import pandas as pd
-import math
 import os
+import csv
 
 import multiprocessing
 import time
 import sys
 
-import random
-
-ldt_timestamps = []
 global idx
 global dt_date
 global df_idxdata
@@ -33,6 +31,7 @@ def run():
     global fheader
     global df_idxdata
     global market
+    global ls_symbols
 
     dt_date = dt.datetime.now().date()
     
@@ -48,24 +47,9 @@ def run():
 
     urls = df_urls.values.tolist()  #to be passed to download 
 
-    global ls_symbols
-
-    #dl.googleData()
-
     dl.historicalindex()
     
     directory = "data\\google\\"
-    #filepath = directory + "gdata.csv"
-    #df_googleData = pd.read_csv(filepath)
-
-    # =len(df_googleData)
-
-    #on hand stock
-    #directory = "data\\google\\"
-    #filepath = directory + "transactions.csv"
-    #df_trans = pd.read_csv(filepath)
-    #ls_symbols = fn.onhandsymbols(df_trans)
-    #print ls_symbols
 
     filepath = directory + "symbolurl.csv"
     df_idxdata = pandas.read_csv(filepath, dtype={'SYMBOL': object})
@@ -74,9 +58,8 @@ def run():
     #Download index
     directory = "data\\google\\"
     filepath = directory + "historical-data-index.csv"
-    df_hindex = pd.read_csv(filepath)
-
-    c = len(df_idxdata)
+    #df_hindex = pd.read_csv(filepath)
+    df_hindex = globaldf.read(filepath)
 
     ls_hindex = df_hindex.SYMBOL.unique()
     market = df_hindex.MARKET.unique()[0]
@@ -103,7 +86,6 @@ def run():
 
 def download(parms):
 
-    directory1 = "data\\historical\\raw\\"
     directory2 = "data\\historical\\"
 
     dt_date = dt.datetime.now().date()
@@ -126,18 +108,18 @@ def download(parms):
             
             if len(df_data1) > 0:
                 symbol = df_data1.iloc[0]["Symbol"]
-                filename2 = fn.filenameFormatter(symbol)
-##              ##To write raw data downloaded, 26 AUG 2018
-##                filepath1 = directory1 + filename2 + '.csv'
-##                df_data1.to_csv(filepath1, index=False)                
+                filename2 = fn.filenameFormatter(symbol)            
                 
                 if headers == list(df_data1.columns.values):
                     df_data2 = knndata.formatGoogleData(df_data1)
-                    filepath2 = directory2 + filename2 + ".csv"                 
-                    df_data2.to_csv(filepath2, index=False)
+                    #Read raw data file without reading price quote
+                    df_data0 = knndata.getRawData(symbol,False)
+                    df_result = knndata.mergeRawData(df_data0, df_data2)                    
+                    filepath2 = directory2 + filename2 + ".csv"                    
+                    df_result.to_csv(filepath2, index=False)
                     ret = len(df_data2)
                     print symbol + ", " + fname + " - Completed"
-                else:
+                else:                    
                     print symbol + ", " + fname + " - No price data"
             else:
                 line = symbol + "," + fname + "," + str(dt_date)

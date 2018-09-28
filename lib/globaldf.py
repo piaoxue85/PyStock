@@ -1,5 +1,6 @@
 
 import pandas
+import numpy
 
 #12 SEP 2018
 #A MODULE FOR KEEPING ALL DATAFRAME IN A GLOBAL VARIABLE
@@ -59,7 +60,6 @@ def read(filepath, pfile=True):
 
 def to_csv(filepath):
 
-    print 'to_csv ' + filepath
     df = read(filepath,False)
     df.to_csv(filepath,index=False)        
 
@@ -73,6 +73,13 @@ def all_to_csv():
         i[1].to_csv(i[0], index=False)
 
     return
+
+def rounddf(df,cols,dp):
+
+        for col in cols:
+                df[col] = df[col].astype(numpy.double).round(dp)
+
+        return df
 
 def clear():
 

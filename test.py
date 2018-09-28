@@ -121,38 +121,7 @@ def main_backtest():
 
    
         return
-
-def main_globaldf():
-        fnn1 = "results\\Onhand.csv"
-        print "1"
-        df = globaldf.read(fnn1)
-        print "2"
-        df = globaldf.read(fnn1)
-        print "3"
-        market = 'HSI'
-        fnn2 = 'lib\\download.cfg'
-        print "4"
-        df2 = globaldf.read(fnn2)
-        print "5"
-        df2 = globaldf.read(fnn2)
-        print len(df2)     
-        globaldf.clear()
-        ret = globaldf.update([fnn1,df])
-        ret = globaldf.update([fnn2,df2])
-        ret = globaldf.update([fnn1,df])
-        ret = globaldf.update([fnn2,df2])
-        globaldf.clear()
-        ret = globaldf.update([fnn2,df2])
-        ret = globaldf.update([fnn1,df])
-        ret = globaldf.update([fnn2,df2])
-        ret = globaldf.update([fnn1,df])
-        
-##        globaldf.save(fnn1)
-##        globaldf.saveall()
-        df = globaldf.read(fnn1)
-        df2 = globaldf.read(fnn2)  
-        print len(df)
-        print len(df2)      
+   
         
 def main_analyse():
 
@@ -221,24 +190,41 @@ def getSymbols():
 def main_data():
         
         ls_symbols = getSymbols()
+
+        ls_symbols = ['0005']
+        
         for symbol in ls_symbols:
             fnn = fn.filenameFormatter(symbol)
-            hdir = "data\\historical\\"            
-            filepath = hdir + fnn + ".csv"
-
-            #df_data1 = pandas.read_csv(filepath)
+            ydir = "data\\historical\\yahoo\\"
+            filepath = ydir + fnn + ".csv"
             df_data1 = globaldf.read(filepath)
-            df_data1['SOURCE'] = 'GOOG-H'            
-            globaldf.update([filepath,df_data1])                
-            globaldf.to_csv(filepath)
 
+            fnn = fn.filenameFormatter(symbol)
+            gdir = "data\\historical\\google\\"            
+            filepath = gdir + fnn + ".csv"
+            df_data2 = globaldf.read(filepath)
 
+##            ydates = df_data1['DATE']
+##            gdates = df_data2['DATE']
+##
+##            g = df_data2.DATE.isin(ydates)
+##
+##            y = df_data1[~df_data1['DATE'].isin(gdates)]
+##
+##            r = fn.dfconcat(df_data2,y)
+
+            df_result = knndata.mergeRawData(df_data1, df_data2)
+            directory2 = "data\\historical\\"
+            filepath2 = directory2 + symbol + ".csv"
+            df_result.to_csv(filepath2, index=False)
+
+        return
              
 status = "test"
 filepath = gdir + "gdata.csv"
 df_googleData = globaldf.read(filepath)  
 
 if status <> "running":
-        main_analyse()
+        main_data()
 else:
         print "Other instance is running"
