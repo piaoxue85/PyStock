@@ -635,20 +635,19 @@ if __name__ == '__main__':
 
         filepath = gdir + "gdata.csv"
         global df_googleData
-        #df_googleData = pd.read_csv(filepath)
         df_googleData = globaldf.read(filepath)        
 
         argv = sys.argv    
         if len(argv)>1:
                 para = ",".join(argv)
                 market = argv[1]
-                main()
+                main(market)
                 print "[" + para + "]"
         else:
 
                 #Parameters:
                 #Run symbols if ls_symbols contains values
-                markets = ['NYSE','ASX','HSI']
+                markets = ['ASX']
                 ls_symbols = []
 
                 if len(ls_symbols) > 0:

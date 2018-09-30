@@ -225,6 +225,9 @@ def mergeRawData(df1, df2):
 
     df4 = pandas.DataFrame()
 
+    #REMOVING DAY QUOTE
+    df1 = df1[df1['SOURCE']!='GOOG-Q']
+
     if len(df1) > 0 and len(df2) > 0:
         
         val = df1[colname]
