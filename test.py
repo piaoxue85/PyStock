@@ -191,16 +191,16 @@ def main_data():
         
         ls_symbols = getSymbols()
 
-        ls_symbols = ['0005']
+        ls_symbols = ['EA']
         
         for symbol in ls_symbols:
             fnn = fn.filenameFormatter(symbol)
-            ydir = "data\\historical\\yahoo\\"
+            ydir = "data\\historical\\data1\\"
             filepath = ydir + fnn + ".csv"
             df_data1 = globaldf.read(filepath)
 
             fnn = fn.filenameFormatter(symbol)
-            gdir = "data\\historical\\google\\"            
+            gdir = "data\\historical\\data2\\"            
             filepath = gdir + fnn + ".csv"
             df_data2 = globaldf.read(filepath)
 
@@ -214,7 +214,7 @@ def main_data():
 ##            r = fn.dfconcat(df_data2,y)
 
             df_result = knndata.mergeRawData(df_data1, df_data2)
-            directory2 = "data\\historical\\"
+            directory2 = "data\\historical\\result\\"
             filepath2 = directory2 + symbol + ".csv"
             df_result.to_csv(filepath2, index=False)
 

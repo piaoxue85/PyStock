@@ -219,40 +219,52 @@ def formatYahooData(df_data2):
 
 ##Merging raw data files from different sources
 ##28 Sep 2018
-def mergeRawData(df1, df2):
+def mergeRawData(df_source, df_newdata):
 
     colname = 'DATE'
 
-    df4 = pandas.DataFrame()
+    #RESULT
+    df_result = pandas.DataFrame()
 
-    #REMOVING DAY QUOTE
-    df1 = df1[df1['SOURCE']!='GOOG-Q']
-
-    if len(df1) > 0 and len(df2) > 0:
+    if len(df_source) > 0:
         
-        val = df1[colname]
+        #KEEPING ORIGINAL DATA
+        df0 = df_source.copy()
+        
+        #REMOVING DAY QUOTE
+        df_historical = df_source[df_source['SOURCE']!='GOOG-Q']
 
-        df3 = df2[~df2[colname].isin(val)]
 
-        df4 = fn.dfconcat(df1,df3)
+    if len(df_historical) > 0 and len(df_newdata) > 0:
+        
+        val = df_historical[colname]
 
-    if len(df2) == 0:
+        df_newhistorical = df_newdata[~df_newdata[colname].isin(val)]
 
-        df4 = df1
+        df_result = fn.dfconcat(df_historical,df_newhistorical)
 
-    if len(df4) == 0:
+        val = df_result[colname]
 
-        df4 = df2
+        df_dayquote = df_source[~df_source[colname].isin(val)]
 
-    if len(df4) > 0:
+        df_result = fn.dfconcat(df_result,df_dayquote)        
 
-        df4 = df4.sort(colname)
-        df4.index = range(len(df4.index))
+    if len(df_newdata) == 0:
+
+        df_result = df_source
+
+    if len(df_result) == 0:
+
+        df_result = df_newdata
+
+    if len(df_result) > 0:
+
+        df_result = df_result.sort(colname)
+        df_result.index = range(len(df_result.index))
         numcols = ['OPEN','HIGH','LOW','CLOSE','ADJ CLOSE']
-        df4 = globaldf.rounddf(df4, numcols, 4)    
+        df_result = globaldf.rounddf(df_result, numcols, 4)    
 
-    return df4
-
+    return df_result
 
 def getRawData(s, readquote = True):
     #HISTORICAL

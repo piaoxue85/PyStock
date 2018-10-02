@@ -58,7 +58,6 @@ def run():
     #Download index
     directory = "data\\google\\"
     filepath = directory + "historical-data-index.csv"
-    #df_hindex = pd.read_csv(filepath)
     df_hindex = globaldf.read(filepath)
 
     ls_hindex = df_hindex.SYMBOL.unique()

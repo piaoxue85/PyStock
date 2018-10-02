@@ -364,14 +364,18 @@ def readTrans(df_trans, sym):
 
 def dfconcat(df1, df2):
 
+        df_result = pd.DataFrame()
+
         if len(df1) == 0:
                 if len(df2) > 0:
-                    df1 = df2
+                    df_result = df2
         else:
                 if len(df2) > 0:
-                    df1 = pd.concat([df1,df2])
+                    df_result = pd.concat([df1,df2])
+                else:
+                    df_result = df1
                 
-        return df1
+        return df_result
 
 #9 SEP 2018
 #CONVERT ALL COLUMNS TO SPECIFY DATATYPE

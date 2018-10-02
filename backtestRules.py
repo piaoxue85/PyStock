@@ -647,7 +647,7 @@ if __name__ == '__main__':
 
                 #Parameters:
                 #Run symbols if ls_symbols contains values
-                markets = ['ASX']
+                markets = ['HSI']
                 ls_symbols = []
 
                 if len(ls_symbols) > 0:

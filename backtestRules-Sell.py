@@ -14,6 +14,7 @@ from lib import knndata
 
 from datetime import datetime, timedelta
 from lib import talibw
+from lib import globaldf
 
 import pandas as pd
 
@@ -31,8 +32,8 @@ global bheader
 global sheader
 
 #TAKE PROFIT, STOP LOSS
-global autoplfile
-global autoplheader
+global fixedplfile
+global fixedplheader
 
 global sDate
 global eDate
@@ -81,6 +82,7 @@ ls_rules = brules
 odir = "results\\autotrade\\"
 rdir = "results\\backtest\\"
 
+
 #DIRECTORY FOR BUY ORDERS
 bdir = odir + "\\buy\\"
 
@@ -97,9 +99,7 @@ global df_googleData
 
 def getSymbols():
         
-        filepath = gdir + "gdata.csv"
         global df_googleData
-        df_googleData = pd.read_csv(filepath)
             
         ls_symbols1 = fn.readsymbols(df_googleData,'HSI')
         ls_symbols2 = fn.readsymbols(df_googleData,'ASX')
@@ -118,7 +118,7 @@ def getSymbols():
 
         ls_symbols = ls_symbols1 + ls_symbols2 + ls_symbols3
 
-        ls_symbols =['ASX-CBA']
+        ls_symbols =['ASX-ASX']
 
         return ls_symbols
 
@@ -148,7 +148,7 @@ def readResults(ls_symbols):
 
         return df_output
     
-def main(market=None):
+def main2():
 
         ls_symbols = getSymbols()
 
@@ -164,7 +164,7 @@ def main(market=None):
 
 
 #def readBuySignal(market):
-def main2(market='ASX'):
+def main(market='ASX'):
 
         global brules
         global srules
@@ -176,14 +176,15 @@ def main2(market='ASX'):
 
         filepath = gdir + "gdata.csv"
         global df_googleData
-        df_googleData = pd.read_csv(filepath)
+        #df_googleData = pd.read_csv(filepath)
+        df_googleData = globaldf.read(filepath)
         
         odir = "results\\listdata\\"
         ofilename = 'list-' + market + '.csv'
         filepath = odir + ofilename
 
         print filepath
-        df_output = pd.read_csv(filepath)
+        df_output = globaldf.read(filepath)
       
         df_prices = df_output[['SYMBOL','DATE','OPEN','HIGH','LOW','CLOSE','CLOSECHG']]
         df_prices = df_prices[df_prices['CLOSE'] > 0]
@@ -230,7 +231,8 @@ def main2(market='ASX'):
                                 selldate = Ss_date[i]
                                 
                         ls_selldate.append(selldate)                                                                
-                df_orders['SELLDATE'] = pd.Series(ls_selldate)                        
+                df_orders['SELLDATE'] = pd.Series(ls_selldate)
+
                 
                 df_orders.to_csv(rfile,index=False)                  
                 print 'See ' + rfile
@@ -293,11 +295,13 @@ def pairingorder(symbol, df_tdata, keepoldresults = False):
                         rules.append([str(b),str(s), 0])
                         for mloss in range(2, maxlosspct, 1):
                                 rules.append([str(b),str(s), float(mloss) / 100])                        
-                rules.append([str(b),'AUTOPL',stoploss])
+                rules.append([str(b),'FIXEDPL',stoploss])
                                           
         try:
                 df_backtestResults = pd.read_csv(bsfile, dtype={'P.TYPE': 'S30', 'S.TYPE': 'S30'})
+                gloabldf.update([bsfile,df_backtestResults])
                 df_backtestTrans = pd.read_csv(btfile, dtype={'P.TYPE': 'S30', 'S.TYPE': 'S30'})
+                gloabldf.update([btfile,df_backtestTrans])                
         
         except Exception as e:
 
@@ -409,6 +413,7 @@ def pairingorder(symbol, df_tdata, keepoldresults = False):
                         df_btrans = df_dtrans
                         df_strans = df_dtrans
 
+
                 df_trades, df_stat = trade.execute(symbol,df_btrans, df_strans, dDate1, dDate2)
                 df_trades['P.TYPE'] = b
                 df_trades['S.TYPE'] = s
@@ -476,13 +481,16 @@ def createorder(symbol, dataset, df_dataset):
                         df_b, df_s, df_pl = select(symbol,dataset, df_dataset, info,rule)
 
                 bfile = bdir + 'buy-' + str(symbol) + '-' + str(rule) + '.csv'
-                df_b.to_csv(bfile,index=False)
+                globaldf.update([bfile,df_b])
+                #df_b.to_csv(bfile,index=False)
                 
                 sfile = sdir + 'sell-' + str(symbol) + '-' + str(rule) + '.csv'
-                df_s.to_csv(sfile,index=False)
+                globaldf.update([sfile,df_s])
+                #df_s.to_csv(sfile,index=False)
 
                 plfile = sdir + 'fixedpl-' + str(symbol) + '-' + str(rule) + '.csv'
-                df_pl.to_csv(plfile,index=False)                
+                globaldf.update([plfile,df_pl])
+                #df_pl.to_csv(plfile,index=False)                
  
         return
 
@@ -570,14 +578,7 @@ def select(symbol, dataset, df_tdata, info, rule):
 
         df_bresults = pd.DataFrame()
         df_sresults = pd.DataFrame()
-        df_plresults = pd.DataFrame()
-
-        #SHORT SELLING
-        signal1 = 'SELL'
-        signal2 = 'BUY'
-
-        rules1 = srules
-        rules2 = brules
+        df_plresults = pd.DataFrame()        
         
         for i in range(3,l):
 
@@ -592,7 +593,7 @@ def select(symbol, dataset, df_tdata, info, rule):
                         quantity = iamt / round(price,2)
                         tdate = dt.datetime.strptime(data[0], '%Y-%m-%d').date()
                         
-                        if signal == signal1 and rule in rules1:
+                        if signal == 'BUY' and rule in brules:
                                 df_btrans = trade.formatOrder(symbol, tdate,price,quantity,rule)
                                 df_bresults = fn.dfconcat(df_bresults,df_btrans)                             
                                 
@@ -606,7 +607,7 @@ def select(symbol, dataset, df_tdata, info, rule):
 
                                 df_plresults = fn.dfconcat(df_plresults,df_pltrans)                                      
 
-                        if signal == rule2 and rule in rules2:                           
+                        if signal == 'SELL' and rule in srules:                           
                                 df_strans = trade.formatOrder(symbol, tdate,price,-quantity,rule)
                                 df_sresults = fn.dfconcat(df_sresults,df_strans)
                                 
@@ -629,17 +630,29 @@ def findResults(df, pctpa):
                 
         return df
         
-#DIRECT EXECUTING        
+#DIRECT EXECUTION
 if __name__ == '__main__':
 
-    argv = sys.argv    
-    if len(argv)>1:
-        para = ",".join(argv)
-        market = argv[1]
-        main()
-        print "[" + para + "]"
-    else:
-        markets = ['NYSE']
-        for market in markets:
+        filepath = gdir + "gdata.csv"
+        global df_googleData
+        df_googleData = globaldf.read(filepath)        
+
+        argv = sys.argv    
+        if len(argv)>1:
+                para = ",".join(argv)
+                market = argv[1]
                 main(market)
+                print "[" + para + "]"
+        else:
+
+                #Parameters:
+                #Run symbols if ls_symbols contains values
+                markets = ['NYSE','HSI']
+                ls_symbols = []
+
+                if len(ls_symbols) > 0:
+                        test(ls_symbols)
+                else:
+                        for market in markets:
+                                main(market)
         

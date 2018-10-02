@@ -106,12 +106,12 @@ def execute(symbol, arg_df_btrans, arg_df_strans, fromDate, toDate):
         df_trans['TOT.PROFITPCT252D'] = df_trans['TOT.PROFITPCT1D'] * 252
         
         numcols = ['P.CASHONHAND','S.CASHONHAND','RZ.PROFITPCT','URZ.PROFITPCT','TOT.PROFITPCT','ONHAND','VALUE','CAPITAL.USED']
-        df_trans = globaldf.rounddf(df_trans, numcols, 2)
+        df_trans = rounddf(df_trans, numcols, 2)
 
         prefixes = ['RZ.','URZ.','TOT.']
         colnames = df_trans.columns.values.tolist()
         pctcols = fnlist.findByPrefix(colnames, prefixes)
-        df_trans = globaldf.rounddf(df_trans, pctcols, 4)     
+        df_trans = rounddf(df_trans, pctcols, 4)     
 
         df_stat = analyse(symbol, df_trans)
         df_stat['TOT.DAYS'] = (toDate - fromDate).days
@@ -119,6 +119,13 @@ def execute(symbol, arg_df_btrans, arg_df_strans, fromDate, toDate):
         df_stat['TRADE-TO-TRADE'] = (df_stat['TOT.DAYS'] / df_stat['PURCHASE']).astype(np.double).round(2)
 
         return df_trans, df_stat
+
+def rounddf(df,cols,dp):
+
+        for col in cols:
+                df[col] = df[col].astype(np.double).round(dp)
+
+        return df
 
 
 def analyse(symbol, arg_df_trans):
@@ -595,7 +602,7 @@ def analysePosition(df_results):
 
                 if position == 'OPEN':
                         df_open['DAYSLEFT'] = np.where(df_open['P.MAXHOLD'] > 0, df_open['P.MAXHOLD'] - df_open['HOLDDAYS'], 0)
-                        df_open = globaldf.rounddf(df_open, ['DAYSLEFT'], 0)
+                        df_open = rounddf(df_open, ['DAYSLEFT'], 0)
                 
                         df_open['STOPLOSSACTION'] = np.where(df_open['P.STOPLOSS'] > df_open['PRICE'], '<font color=\'RED\'><b>ATTENTION</b></font>', '')
 
@@ -634,12 +641,9 @@ def run(sDate, eDate, orderfile, outputid,usecache=False):
                 df_btrans, df_strans = pair(df_symboltrans,sDate,eDate)
 
                 if len(df_btrans) > 0:
-                        try:
-                                df_result, df_stat = execute(sym, df_btrans, df_strans, sDate, eDate)
-                                df_stats = fn.dfconcat(df_stats,df_stat)
-                                df_results = fn.dfconcat(df_results,df_result)
-                        except:
-                                print 'Error - ' + fsym
+                        df_result, df_stat = execute(sym, df_btrans, df_strans, sDate, eDate)
+                        df_stats = fn.dfconcat(df_stats,df_stat)
+                        df_results = fn.dfconcat(df_results,df_result)
 
         fpath = 'results\\transanalysis\\stat' + outputid + '.csv'        
         globaldf.update([fpath,df_stats])
