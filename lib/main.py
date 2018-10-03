@@ -670,8 +670,14 @@ def GetStockInfo(s):
     return r, n, t
 
 def GetGoogleData(df_googleData, s):
-    r = df_googleData[(df_googleData.SYMBOL == s) | (df_googleData.SYMBOL2 == s)]
-    return r
+
+        #Function moved to sharedfunction.py
+        #4 Oct 2018
+        #r = df_googleData[(df_googleData.SYMBOL == s) | (df_googleData.SYMBOL2 == s)]
+
+        r = fn.GetGoogleData(df_googleData,s)        
+
+        return r
 
 def openFile(filepath):
 

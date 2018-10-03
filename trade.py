@@ -572,6 +572,39 @@ def get_dfstopprofit_dfstoploss(df_tdata, bdate, tpp, slp):
 
 def analysePosition(df_results):
 
+        directory = "data\\google\\"
+        filepath = directory + "gdata.csv"
+        df_googleData = globaldf.read(filepath)
+
+        filepath = directory + "exchrate.csv"
+        df_exchrate = globaldf.read(filepath)
+
+        df_results['MARKET'] = ''
+        df_results['EXCHRATE'] = 1
+        ls_fields = ['P.CASHONHAND','VALUE','TOT.PROFIT']
+        for field in ls_fields:
+                df_results[field + '.BASE'] = df_results[field]
+
+        for c in range(0, len(df_results)):
+                df_result = df_results.iloc[c]
+                symbol = fn.filenameFormatter(df_result['SYMBOL'])
+                info = fn.GetGoogleData(df_googleData,symbol)
+                market = info.iloc[0]['MARKET']                
+
+                try:
+                        df_results.iloc[c,df_results.columns.get_loc('MARKET')] = market
+                except:
+                        print 'Unknown market - ' + symbol
+
+                try:
+                        exchrate = df_exchrate[df_exchrate['MARKET'] == market].iloc[0]['RATE']
+                        df_results.iloc[c,df_results.columns.get_loc('EXCHRATE')] = round(exchrate,4)
+                        for field in ls_fields:
+                                df_results.iloc[c, df_results.columns.get_loc(field + '.BASE')] = round(df_results.iloc[c][field + '.BASE'] * exchrate,2)
+                except:
+                        print 'ExchRate error - ' + symbol
+                
+                
         positions = ['CLOSED','OPEN']
 
         for position in positions:
@@ -595,8 +628,7 @@ def analysePosition(df_results):
 
                 if position == 'OPEN':
                         df_open['DAYSLEFT'] = np.where(df_open['P.MAXHOLD'] > 0, df_open['P.MAXHOLD'] - df_open['HOLDDAYS'], 0)
-                        df_open = globaldf.rounddf(df_open, ['DAYSLEFT'], 0)
-                
+                        df_open = globaldf.rounddf(df_open, ['DAYSLEFT'], 0)                
                         df_open['STOPLOSSACTION'] = np.where(df_open['P.STOPLOSS'] > df_open['PRICE'], '<font color=\'RED\'><b>ATTENTION</b></font>', '')
 
                 fname = position.lower() + 'pos'
@@ -684,7 +716,7 @@ def main():
         filepath = directory + "transactions.csv"
 
         dl.transactions()
-
+        
         outputid = str(eDate.year) + str(eDate.month).zfill(2)
         
         run(sDate,eDate, filepath, outputid,False)

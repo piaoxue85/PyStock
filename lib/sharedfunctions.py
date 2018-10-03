@@ -112,6 +112,9 @@ def PlotGraph(ldt_timestamps, df_values, filename):
 
     return
 
+def GetGoogleData(df_googleData, s):
+    r = df_googleData[(df_googleData.SYMBOL == s) | (df_googleData.SYMBOL2 == s)]
+    return r
 
 def readsymbols(df_googleData, m):
 

@@ -1,23 +1,28 @@
 from lib import download as dl
-import csv
-from lib import sharedfunctions as fn
-import datetime as dt
+import os.path
+import pandas as pd
+import numpy
+import sys
+from lib import globaldf
+
 
 ldt_timestamps = []
-    
-def run():
+df_confile = []
 
-    global ls_symbols
-    ls_symbols = fn.readsymbols('currencies')
-    
-    directory = "data\\exchrate\\"
+def readconfigfile(key):
 
-    for s in ls_symbols:
-        filepath = directory + s + ".csv"
-        dl.exchrate(s, filepath)
-        reader = csv.reader(open(filepath,'rU'),delimiter=',')
+    df_result = df_confile[df_confile.KEY==key]    
+    return df_result['VALUE'].iloc[0]
             
 if __name__ == '__main__':
-    run()
+
+    argv = sys.argv
+    df_confile = globaldf.read('getexchrate.cfg')
+    df = dl.asdf(readconfigfile('EXCHRATE'))
+    df.to_csv('data\google\exchrate.csv',index=False)
+    print df.head()
+    
+    
+      
 
 
