@@ -116,7 +116,7 @@ def execute(symbol, arg_df_btrans, arg_df_strans, fromDate, toDate):
         df_stat = analyse(symbol, df_trans)
         df_stat['TOT.DAYS'] = (toDate - fromDate).days
 
-        df_stat['TRADE-TO-TRADE'] = (df_stat['TOT.DAYS'] / df_stat['PURCHASE']).astype(np.double).round(2)
+        df_stat['BUY-TO-BUY'] = (df_stat['TOT.DAYS'] / df_stat['PURCHASE']).astype(np.double).round(2)
 
         return df_trans, df_stat
 
@@ -521,9 +521,9 @@ def get_dfmindate_dfmaxdate(df_tdata, bdate):
 
         return df_mindate, df_maxdate
 
-def get_dfstopprofit_dfstoploss(df_tdata, bdate, tpp, slp):
-#bdate DATE OF BUY ORDER
-#tpp TAKE PROFIR PRICE
+def get_dfstopprofit_dfstoploss(df_tdata, odate, tpp, slp):
+#odate DATE OF ORDER, BUY/SELL ORDER
+#tpp TAKE PROFIT PRICE
 #slp STOP LOSS PRICE
         
         df_profit = pd.DataFrame()      #TAKE PROFIT DATE
@@ -532,7 +532,7 @@ def get_dfstopprofit_dfstoploss(df_tdata, bdate, tpp, slp):
         sprice = 0                      #SELL PRICE
 
         try:
-                df_filtered = df_tdata.loc[(df_tdata.DATE > bdate)]
+                df_filtered = df_tdata.loc[(df_tdata.DATE > odate)]
 
                 if tpp > 0:
                         df_profit= df_filtered.loc[(df_tdata.HIGH >= tpp)]
@@ -603,6 +603,15 @@ def analysePosition(df_results):
                                 df_results.iloc[c, df_results.columns.get_loc(field + '.BASE')] = round(df_results.iloc[c][field + '.BASE'] * exchrate,2)
                 except:
                         print 'ExchRate error - ' + symbol
+
+        fpath = 'results\\'
+        fname = 'allpos'
+        f1 = fpath + fname + '.csv'
+        globaldf.update([f1,df_results])
+        globaldf.to_csv(f1)        
+
+        f2 = fpath + fname + '.htm'        
+        fileformatter.convertfile(f1, f2)                        
                 
                 
         positions = ['CLOSED','OPEN']
@@ -615,16 +624,19 @@ def analysePosition(df_results):
                         prefixes = ['S.','RZ.','URZ.']
                         colnames = df_open.columns.values.tolist()
                         ls_delcols = fnlist.findByPrefix(colnames, prefixes)        
-                        ls_delcols.append('HOLDUNTIL')
-
+                        #ls_delcols.append('HOLDUNTIL')
+                      
                 if position == 'CLOSED':
-                        prefixes = ['RZ.','URZ.']
+                        prefixes = ['RZ.','URZ.','VALUE']
                         colnames = df_open.columns.values.tolist()
-                        ls_delcols = fnlist.findByPrefix(colnames, prefixes)        
+                        ls_delcols = fnlist.findByPrefix(colnames, prefixes)
                         ls_delcols.append('HOLDUNTIL')
-                
+                        ls_delcols.append('ONHAND')
+                        ls_delcols.append('VAL.DATE')
+                        ls_delcols.append('PRICE')
+
                 for delcol in ls_delcols:
-                        del df_open[delcol]
+                        del df_open[delcol]                        
 
                 if position == 'OPEN':
                         df_open['DAYSLEFT'] = np.where(df_open['P.MAXHOLD'] > 0, df_open['P.MAXHOLD'] - df_open['HOLDDAYS'], 0)

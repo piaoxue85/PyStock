@@ -27,7 +27,6 @@ global ls_symbols3
 import sys
 
 para  = ''
-#markets = ['HSI']
 markets = ['HSI','ASX','NYSE']
 
 ls_symbols3 = []

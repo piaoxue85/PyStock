@@ -142,7 +142,7 @@ def readResults(ls_symbols):
         print 'Read ' + rfile
         #df_results.to_csv(rfile,index=False)
 
-        df_output = df_results[['SYMBOL','P.TYPE','S.TYPE','STOPLOSS','BUY-TO-BUY','RZ.W.PCT','AVG.RZ.HOLD','AVG.RZ.PROFITPCT','AVG.RZ.PROFITPCT252D']]
+        df_output = df_results[['SYMBOL','P.TYPE','S.TYPE','STOPLOSS','TRADE-TO-TRADE','RZ.W.PCT','AVG.RZ.HOLD','AVG.RZ.PROFITPCT','AVG.RZ.PROFITPCT252D']]
         df_output.to_csv(rfile,index=False)
         #print df_display.to_html()
 
@@ -176,7 +176,7 @@ def main(market='ASX'):
 
         filepath = gdir + "gdata.csv"
         global df_googleData
-        #df_googleData = pd.read_csv(filepath)
+
         df_googleData = globaldf.read(filepath)
         
         odir = "results\\listdata\\"
@@ -259,6 +259,9 @@ def test(ls_symbols):
                         dataset = knndata.getData(symbol,sDate, eDate, True, False)
                         df_dataset = knndata.getdfdata(dataset)
                         createorder(symbol, dataset, df_dataset)
+
+                        #7 Oct 2018
+                        #change for suggesting buy back price
                         df_trades, df_stat = pairingorder(symbol, df_dataset)
                         df_alltrades = fn.dfconcat(df_alltrades,df_trades)
                         df_allstat = fn.dfconcat(df_allstat,df_stat)
@@ -290,13 +293,17 @@ def pairingorder(symbol, df_tdata, keepoldresults = False):
 
         maxlosspct = 10
 
-        for b in brules:
-                for  s in srules:
+        rules1 = brules
+        rules2 = srules
+
+        for b in rules1:
+                for  s in rules2:
                         rules.append([str(b),str(s), 0])
                         for mloss in range(2, maxlosspct, 1):
                                 rules.append([str(b),str(s), float(mloss) / 100])                        
                 rules.append([str(b),'FIXEDPL',stoploss])
-                                          
+
+        #Reading historical test results
         try:
                 df_backtestResults = pd.read_csv(bsfile, dtype={'P.TYPE': 'S30', 'S.TYPE': 'S30'})
                 gloabldf.update([bsfile,df_backtestResults])
@@ -403,8 +410,7 @@ def pairingorder(symbol, df_tdata, keepoldresults = False):
                                 #No sell matched, create a dummy transaction for execute
                                 if len(df_strans) == 0:                                        
                                         df_strans = trade.formatOrder(symbol,np.nan,0,0,s)
-                                        
-                                
+                                                                        
                 else:
 
                         #No buy / sell, create a dummy transaction for execute
@@ -428,6 +434,7 @@ def pairingorder(symbol, df_tdata, keepoldresults = False):
 ##                df_stat['CAP.UTIL.PCT'] = (df_stat['SUM.CAPITAL.USED'] / df_stat['SUM.CAPITAL.TOT'] * 100).astype(np.double).round(2)
                 df_alltrades = fn.dfconcat(df_alltrades,df_trades)
                 df_allstat = fn.dfconcat(df_allstat,df_stat)
+                
                 if oldresultscount > 0:
                         try:
                                 df_backtestResults = df_backtestResults[(df_backtestResults['P.TYPE'] != b) & (df_backtestResults['S.TYPE'] != s) & (df_backtestResults['STOPLOSS'] != mloss)]
@@ -480,17 +487,18 @@ def createorder(symbol, dataset, df_dataset):
                 else:
                         df_b, df_s, df_pl = select(symbol,dataset, df_dataset, info,rule)
 
-                bfile = bdir + 'buy-' + str(symbol) + '-' + str(rule) + '.csv'
+
+                bfile = bdir + 'buy-' + str(symbol) + '-' + str(rule) + '.csv'               
                 globaldf.update([bfile,df_b])
-                #df_b.to_csv(bfile,index=False)
-                
+                globaldf.to_csv(bfile)
+
                 sfile = sdir + 'sell-' + str(symbol) + '-' + str(rule) + '.csv'
                 globaldf.update([sfile,df_s])
-                #df_s.to_csv(sfile,index=False)
+                globaldf.to_csv(sfile)                
 
                 plfile = sdir + 'fixedpl-' + str(symbol) + '-' + str(rule) + '.csv'
                 globaldf.update([plfile,df_pl])
-                #df_pl.to_csv(plfile,index=False)                
+                globaldf.to_csv(plfile)                  
  
         return
 
@@ -647,11 +655,11 @@ if __name__ == '__main__':
 
                 #Parameters:
                 #Run symbols if ls_symbols contains values
-                markets = ['NYSE']
-                ls_symbols = []
+                markets = ['NYSE','ASX','HSI']
+                ls_symbols = ['ASX-NSR']
 
                 if len(ls_symbols) > 0:
-                        test(ls_symbols)
+                        df1, df2 = test(ls_symbols)
                 else:
                         for market in markets:
                                 main(market)

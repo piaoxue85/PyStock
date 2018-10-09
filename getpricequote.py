@@ -2,7 +2,6 @@ from lib import download as dl
 import csv
 from lib import sharedfunctions as fn
 from lib import main as main
-from lib import knndata
 import datetime as dt
 import os.path
 import pandas as pd
@@ -14,7 +13,7 @@ from lib import globaldf
 ldt_timestamps = []
 df_confile = []
 
-def run(url,append):
+def run(url):
 
     directory = "data\\dayquote\\google\\"
     filepath = directory + "gquote.csv"
@@ -52,32 +51,6 @@ def run(url,append):
         myString = ','.join(map(str, items))
         thefile.write(myString)
         thefile.close()
-
-##    ls_symbols = []    
-##    c = len(df_data1)
-##    for i in range(0, c):
-##        
-##        s = str(df_data1.iloc[i]["SYMBOL2"])
-##        if s <> "nan" and len(s) <> 0 :        
-##            ls_symbols.append(df_data1.iloc[i]["SYMBOL2"])
-
-##    for s in ls_symbols:
-##
-##        print "Downloading " + s + " from Yahoo"
-##        filename1 = fn.filenameFormatter(s)
-##        filepath1 = directory + filename1 + ".csv"
-##        
-##        if s.isdigit():
-##            dl.quote(s + ".HK", filepath1)
-##        else:
-##            dl.quote(s, filepath1)
-
-##    if append == True:
-##        print "All quotes ready, appending intraday"
-##
-##        c= len(df_data)
-##        for i in range(0, c-1):
-##            appendintraday(df_data.iloc[i]["SYMBOL2"])
 
     print "All quotes updated"
 
@@ -150,24 +123,9 @@ def appendintraday(s):
         
         print s + " - append intraday error"
 
-
-def downloadNYSE():
-    #NYSE
-    url = readconfigfile('NYSE')
-    run(url,False)
-    return
-
-def downloadHSI():
-    #HSI
-    url = readconfigfile('HSI')
-    run(url,True)
-    return
-
-def downloadASX():
-    #ASX
-    url = readconfigfile('ASX')
-    run(url,False)
-    return
+def download(market):
+    url = readconfigfile(market)
+    run(url)
 
 #Read url by market from config file
 #11 Aug 2018
@@ -179,25 +137,17 @@ def readconfigfile(market):
 if __name__ == '__main__':
 
     argv = sys.argv
-    #Read config file for urls, read one time only
-    #11 Aug 2018    
-    #df_confile = pd.read_csv('getpricequote.cfg')
     df_confile = globaldf.read('getpricequote.cfg')
+    markets = ['HSI','NYSE','ASX','CUSTOM']
     
     para = ""
     if len(argv)>1:
         para = ",".join(argv)
         print "[" + para + "]"
-        if argv[1] == 'HSI':
-            downloadHSI()
-        elif argv[1] == 'NYSE':
-            downloadNYSE()
-        elif argv[1] == 'ASX':
-            downloadASX()
-            
+        download(argv[1])            
     else:
-        downloadNYSE()
-        downloadASX()
-        downloadHSI()        
+        for market in markets:
+            download(market)
+       
 
 
