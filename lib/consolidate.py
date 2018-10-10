@@ -195,7 +195,7 @@ def createSignalFile(df1, signal):
 
         df2 = df1[df1['SYMBOL'].isin(ls_symbols)]        
         
-        df2 = df2.sort(['LV252','PE'])
+        df2 = df2.sort(['CLOSELV252','PE'])
         
         ls_symbols = df2['SYMBOL'].tolist()        
 

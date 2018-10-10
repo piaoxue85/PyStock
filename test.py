@@ -39,8 +39,13 @@ para  = ''
 def run(ls_symbols, dfs):
 
         for s in ls_symbols:
-                mn.run(s, dfs)
-                
+                try:
+                        mn.run(s, dfs)                     
+                except Exception as e:
+                        print s + ' ' + str(e)
+                except SystemExit as e:
+                        print s + ' ' +  str(e)
+
         return
 
 def main_bstrans():
@@ -77,10 +82,13 @@ def main_getdata():
 
 #Test main for knn.getdata
 
-        s = 'ASX-CBA'   
+        s = 'VIX'   
         df_rawdata = knndata.getRawData(s,True)
         fs = fn.filenameFormatter(s)
-        dataset = knndata.prepareData(df_rawdata,fs)
+        try:
+                dataset = knndata.prepareData(df_rawdata,fs)
+        except SystemExit as e:
+                print e
 
         print "See " + fs
         
@@ -128,7 +136,7 @@ def main_analyse():
 #Test main for main.run
         
         #dl.googleData()
-        dl.transactions()
+        #dl.transactions()
         
         fnn = "results\\Onhand.csv"
         sfile = fnn
@@ -147,17 +155,16 @@ def main_analyse():
         global df_googleData
         #df_googleData = pd.read_csv(filepath)
         
-        markets = ['ASX']
+        markets = []
         for market in markets:
                 dfs = mn.prepareRefDf(market)
                 df_googleData = dfs[0]
                 ls_symbols2 = fn.readsymbols(df_googleData,market)
-                ls_symbols2 = ['ASX-CBA']
                 run(ls_symbols2, dfs)
 
-##        markets = ['ASX']
-##        for market in markets:
-##                consol.run(market)
+        markets = ['ASX','NYSE','HSI']
+        for market in markets:
+                consol.run(market)
         
         #consol.run(market)        
         
@@ -191,7 +198,7 @@ def main_data():
         
         ls_symbols = getSymbols()
 
-        ls_symbols = ['EA']
+        ls_symbols = ['VIX']
         
         for symbol in ls_symbols:
             fnn = fn.filenameFormatter(symbol)
@@ -223,8 +230,4 @@ def main_data():
 status = "test"
 filepath = gdir + "gdata.csv"
 df_googleData = globaldf.read(filepath)  
-
-if status <> "running":
-        main_data()
-else:
-        print "Other instance is running"
+main_analyse()

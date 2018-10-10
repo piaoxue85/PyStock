@@ -4,20 +4,29 @@ def apply(data, row, days=10, lthreshold=0.1, hthreshold=0.8):
 
     headers = data[0]
     
-    col = headers.index("LV" + str(days))
-    val1 = data[row][col]  #Latest price
-
+    col = headers.index("CLOSELV" + str(days))
+    closelv = data[row][col]  #Close  - price level
     col = headers.index('CLOSECHG')
-    val2 = data[row][col]  #Price level Change
+    closechg = data[row][col]  #Close - price level change
+
+    col = headers.index("LOWLV" + str(days))
+    lowlv = data[row][col]  #Low  - price level
+    col = headers.index('LOWCHG')
+    lowchg = data[row][col]  #Low - price level change
+
+    col = headers.index("HIGHLV" + str(days))
+    highlv = data[row][col]  #High  - price level
+    col = headers.index('HIGHCHG')
+    highchg = data[row][col]  #High - price level change
 
     signal = ""
   
-    comment = str(days) + 'D PRICE LEVEL IS ' + str(val1)
+    comment = str(days) + 'D PRICE LEVEL IS ' + str(closelv)
 
-    if val1 <= lthreshold and val2 > 1:
+    if (closelv <= lthreshold or lowlv <= lthreshold) and closechg > 1:
         signal = "BUY"
         
-    if val1 >= hthreshold and val2 <= 1:
+    if (closelv >= hthreshold or highlv >= hthreshold) and closechg <= 1:
         signal = "SELL"
 		
     return signal, comment

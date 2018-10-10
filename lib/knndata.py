@@ -271,7 +271,6 @@ def getRawData(s, readquote = True):
     fnn = fn.filenameFormatter(s)
     filepath = hdir + fnn + ".csv"
 
-    #df_data1 = pandas.read_csv(filepath)
     df_data1 = globaldf.read(filepath)
     if len(df_data1) > 0:
         df_data1 = changedftouppercase(df_data1)
@@ -432,10 +431,13 @@ def prepareData(df_data, s, wfile=True):
             for i in range(0, len(rp)):
                 vals = df_data[priceCol].values.copy()                         
                 vals[-1] = df_data.iloc[-1][rsiCol]
-                rsi.append(ti.rsi(vals, rp[i]))
+                ret = ti.rsi(vals, rp[i])
+                rsi.append(ret)
                 rsios.append(rc - len(rsi[i]))
             ls_rsi.append(rsi)
             ls_rsios.append(rsios)
+
+         
 
         sp = [5,10,20,50,100,200]
         sma = []
@@ -443,13 +445,13 @@ def prepareData(df_data, s, wfile=True):
         for i in range(0, len(sp)):
             sma.append(ti.sma(df_data[priceCol].values, sp[i]))
             smaos.append(rc - len(sma[i]))
-
+          
         macddays = [[12,26,9]]
         macd = calcMACD(df_data[priceCol].values,macddays)
         macdos = []
         for i in range(0, len(macddays)):
             macdos.append(rc - len(macd[i]))
-                        
+            
         bb = getbb(df_data[priceCol].values,20)
         roc = ti.roc(df_data[priceCol].values,period=20)
 
@@ -532,13 +534,16 @@ def prepareData(df_data, s, wfile=True):
                     highs = ls_highs[i]
                     lows = ls_lows[i]
 
-                    v1 = 1-((highs[r]-cr[priceCol])/(highs[r]-lows[r]))
-                    v2 = 1-((highs[r-1]-lr[priceCol])/(highs[r-1]-lows[r-1]))
-                    v = calcChg(v1,v2)
-                    h = h + "LV" + str(lvp[i]) + ","
-                    l = l + str("%.4f" % round(v1,2)) + ","
-                    h = h + "LV" + str(lvp[i]) + "CHG,"
-                    l = l + str("%.4f" % round(v,4)) + ","
+                    cols = [priceCol, 'HIGH','LOW']
+
+                    for col in cols:
+                        v1 = 1-((highs[r]-cr[col])/(highs[r]-lows[r]))
+                        v2 = 1-((highs[r-1]-lr[col])/(highs[r-1]-lows[r-1]))
+                        v = calcChg(v1,v2)
+                        h = h + col + "LV" + str(lvp[i]) + ","
+                        l = l + str("%.4f" % round(v1,2)) + ","
+                        h = h + col + "LV" + str(lvp[i]) + "CHG,"
+                        l = l + str("%.4f" % round(v,4)) + ","
 
                     #DAY HIGH
                     v = highs[r]

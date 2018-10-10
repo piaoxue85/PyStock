@@ -72,15 +72,17 @@ def prepareRefDf(market):
         df_trans = globaldf.read(filepath)
         ret.append(df_trans)
 
-        directory = "analysis\\rsi9\\output\\"
-        filepath = directory + "seasonalrsi.csv"
-        df_rsi_an = globaldf.read(filepath)
-        ret.append(df_rsi_an)
+##      Bypassed
+##      10 Oct 2018
+##        directory = "analysis\\rsi9\\output\\"
+##        filepath = directory + "seasonalrsi.csv"
+##        df_rsi_an = globaldf.read(filepath)
+##        ret.append(df_rsi_an)
 
-        c = "results\\prediction\\*" + market + "*-1.csv"
-        files = glob.glob(c)
-        df_predict = fn.read_as_df(files)
-        ret.append(df_predict)
+##        c = "results\\prediction\\*" + market + "*-1.csv"
+##        files = glob.glob(c)
+##        df_predict = fn.read_as_df(files)
+##        ret.append(df_predict)
 
         return ret
 

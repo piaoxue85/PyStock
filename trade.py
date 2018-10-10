@@ -718,7 +718,7 @@ def writeExcel():
 
 def main():
 
-        sDate = '01/01/2018'
+        sDate = '07/01/2018'
         sDate = dt.datetime.strptime(sDate, '%m/%d/%Y').date()
 
         eDate = '12/31/2018'
