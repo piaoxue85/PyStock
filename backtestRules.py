@@ -626,7 +626,8 @@ def findResults(df, pctpa):
         mindailyprofitpct = (pctpa*100) / 252
         print 'Looking for trading rules with profit over ' + str(pctpa*100) + '% pa, ' + str(round(mindailyprofitpct,2)) + '% per day'
         #df = df[(df['AVG.RZ.DAYPROFITPCT'] >= mindailyprofitpct) & (df['RZ.W.PCT'] >= 80) & (df['P.TYPE'] == '16') & (df['S.TYPE'] == '16')]
-        df = df[(df['AVG.RZ.PROFITPCT1D'] >= mindailyprofitpct) & (df['RZ.W.PCT'] >= 80)]
+        #11 OCT 2018, any suggesting order must come with a stop loss price
+        df = df[(df['AVG.RZ.PROFITPCT1D'] >= mindailyprofitpct) & (df['RZ.W.PCT'] >= 80) & (df['STOPLOSS'] > 0)]
                 
         return df
         
