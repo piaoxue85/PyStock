@@ -58,7 +58,7 @@ import glob
 overhead = 0.0031
 ls_rules = [1,2,3,4,5,6,6.1,7,8,8.1,8.2,8.3,8.4,9,10,11, 12, 13, 14.93070,14.143070,14.253070,16]
 
-def prepareRefDf(market):
+def prepareRefDf(market=''):
 
         ret = []
 

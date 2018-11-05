@@ -73,15 +73,24 @@ def main(market):
         run(ls_symbols2, dfs)
         consol.run(market)
         return
+
+def main_symbols(ls_symbols):
+
+        dt_today = dt.datetime.now().date()
+        dfs = mn.prepareRefDf()
+        df_googleData = dfs[0]
+        run(ls_symbols, dfs)
+        consol.run()
+        return
              
 
 argv = sys.argv
 
-if len(argv)>1:
-        print argv[1]
-        runOnhand()
-        main(argv[1])
-else:
+cargv = len(argv)
+
+#Run all markets
+if cargv == 1:
+        
         dl.googleData()
         dl.transactions()       
         runOnhand()
@@ -89,3 +98,25 @@ else:
         for market in markets:
                 main(market)
                 ls_symbols3 = []
+
+elif cargv == 2:
+        
+        print argv[1]
+
+        #5 Nov 2018, D1045
+        #Run specified market
+        if argv[1] in markets:
+                runOnhand()
+                main(argv[1])
+
+        #5 Nov 2018, D1045
+        #Run specified symbols
+        else:
+                ls_symbols = argv[1].split(',')
+                main_symbols(ls_symbols)
+                for market in markets:
+                        consol.run(market)
+
+
+        
+
